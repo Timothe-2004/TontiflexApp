@@ -862,7 +862,8 @@ class Adhesion(models.Model):
     def save(self, *args, **kwargs):
         """Override save pour utiliser uniquement les frais d'adhésion définis dans la tontine"""
         if self.tontine:
-            self.frais_adhesion_calcules = self.tontine.frais_adhesion
+            # CORRECTION : fraisAdhesion au lieu de frais_adhesion
+            self.frais_adhesion_calcules = self.tontine.fraisAdhesion
         # Définir la date d'expiration si pas encore définie (7 jours après validation agent)
         if hasattr(self, 'statut_actuel') and self.statut_actuel == 'validee_agent' and not getattr(self, 'date_expiration', None):
             from datetime import timedelta

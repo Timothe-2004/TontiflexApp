@@ -69,30 +69,3 @@ Il peut ajouter, supprimer, susprendre des SFD.
 
 
 
-
-Nous utilisons Django REST Framework dans une app séparée 'api/'.
-Ne pas modifier les vues Django existantes dans core, demandes, tontines, mobile_money.
-Nos modèles sont :
-- core.models : Client, AdministrateurSFD, AgentSFD, SFD, NumeroMobileMoney
-- demandes.models.adhesion : DemandeAdhesion
-- tontines.models.tontine : Tontine, TontineParticipant
-- tontines.models.adhesion_workflow : WorkflowAdhesion
-- mobile_money.models : TransactionMobileMoney, OperateurMobileMoney
-
-Requis :
-- serializers DRF (ModelSerializer) pour ces modèles, fields='__all__'
-- viewsets avec DefaultRouter
-- actions personnalisées :
-  - Dans DemandeAdhesionViewSet : valider_agent (POST), payer (POST), integrer (POST)
-  - Dans WorkflowAdhesionViewSet : stats (GET), cotiser (POST)
-- Conserver imports de decimal.Decimal, django.db.transaction, timezone, etc.
-- Ne change pas les urls/webviews existantes; ajoute uniquement `path('api/', include('api.urls'))`.
-
-
-
-
-
-
-
-
-

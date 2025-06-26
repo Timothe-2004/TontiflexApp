@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',  # Ajout pour CORS
     'rest_framework',
     'accounts',
     'tontines',
@@ -48,6 +50,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # CORS en premier
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -134,13 +137,103 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'TontiFlex API',
-    'DESCRIPTION': 'API pour la gestion des tontines et comptes d\'épargne',
+    'DESCRIPTION': 'API pour la gestion des tontines et comptes d\'épargne - Système de Finance Décentralisée',
     'VERSION': '1.0.0',
     'COMPONENT_SPLIT_REQUEST': True,
     'SCHEMA_PATH_PREFIX': r'/api/',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': False,
+        'defaultModelsExpandDepth': 1,
+        'defaultModelExpandDepth': 1,
+        'defaultModelRendering': 'example',
+        'displayRequestDuration': True,
+        'docExpansion': 'none',
+        'filter': True,
+        'showExtensions': True,
+        'showCommonExtensions': True,
+        'requestInterceptor': '(req) => { console.log("Request:", req); return req; }',
+        'responseInterceptor': '(res) => { console.log("Response:", res); return res; }',
+    },
+    'SECURITY': [
+        {
+            'jwtAuth': []
+        }
+    ],
+    'COMPONENTS': {
+        'securitySchemes': {
+            'jwtAuth': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+                'description': 'JWT Authorization header using the Bearer scheme. Enter: Bearer YOUR_ACCESS_TOKEN'
+            }
+        }
+    },
+    'SERVERS': [
+        {
+            'url': 'http://localhost:8000',
+            'description': 'Serveur de développement'
+        }
+    ],
 }
-# --- End DRF Configuration ---
+
+# --- JWT Configuration ---
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),  # Augmenté à 2h pour le développement
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+}
+
+# --- End JWT Configuration ---
+
+# --- CORS Configuration ---
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Allow all origins in development
+
+CORS_ALLOWED_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# --- End CORS Configuration ---

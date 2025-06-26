@@ -1,18 +1,7 @@
 """
 URL configuration for tontiflex project.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Structure réorganisée avec namespaces séparés pour chaque module.
 """
 
 from django.contrib import admin
@@ -21,12 +10,15 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # API REST TontiFlex (intégrée dans l'app tontines)
-    path('', include('tontines.urls')),
-    # URLs web existantes (conservées pour compatibilité)
-    path('accounts/', include('accounts.urls')),
     
-    # Documentation API
+    # API REST avec namespaces organisés
+    path('', include('accounts.urls')),      # /api/accounts/ et /auth/
+    path('', include('tontines.urls')),      # /api/tontines/
+    path('', include('savings.urls')),       # /api/savings/
+    path('', include('mobile_money.urls')),  # /api/mobile-money/
+    path('', include('notifications.urls')), # /api/notifications/
+    
+    # Documentation API centralisée
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui-home'),
 ]

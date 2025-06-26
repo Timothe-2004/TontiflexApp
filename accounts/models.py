@@ -113,11 +113,7 @@ class Utilisateur(models.Model):
         if self.motDePasse and not self.motDePasse.startswith('pbkdf2_'):
             self.motDePasse = make_password(self.motDePasse)
             
-        # Synchroniser last_login et derniere_connexion
-        if self.last_login:
-            self.derniere_connexion = self.last_login
-        elif self.derniere_connexion:
-            self.last_login = self.derniere_connexion
+        
         
         # Sauvegarder le modèle
         super().save(*args, **kwargs)
