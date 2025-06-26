@@ -11,14 +11,15 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # API REST avec namespaces organisés
-    path('', include('accounts.urls')),      # /api/accounts/ et /auth/
-    path('', include('tontines.urls')),      # /api/tontines/
-    path('', include('savings.urls')),       # /api/savings/
-    path('', include('mobile_money.urls')),  # /api/mobile-money/
-    path('', include('notifications.urls')), # /api/notifications/
-    
-    # Documentation API centralisée
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    # Documentation API centralisée à la racine
     path('', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui-home'),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    
+    # API REST avec namespaces organisés sous /api/
+    path('api/', include('accounts.urls')),      # /api/accounts/ et /api/auth/
+    path('api/', include('tontines.urls')),      # /api/tontines/
+    path('api/', include('savings.urls')),       # /api/savings/
+    path('api/', include('loans.urls')),         # /api/loans/
+    path('api/', include('mobile_money.urls')),  # /api/mobile-money/
+    path('api/', include('notifications.urls')), # /api/notifications/
 ]
