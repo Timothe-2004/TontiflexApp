@@ -1,4 +1,18 @@
 """
+TEMPORAIREMENT DÉSACTIVÉ - MIGRATION VERS KKIAPAY
+Ce module sera supprimé une fois la migration KKiaPay terminée.
+
+Nouveau module payments/ avec KKiaPay intégré.
+Documentation : https://kkiapay.me/kkiapay-integration/?lang=en
+Dashboard : https://app.kkiapay.me/dashboard
+
+Mode SANDBOX activé pour tests et validation.
+Changement vers LIVE après validation complète.
+
+VOIR PROJET_HISTORIQUE.md pour suivi détaillé de la migration.
+"""
+
+"""
 Views Django REST Framework pour le module Mobile Money.
 """
 from rest_framework import viewsets, permissions

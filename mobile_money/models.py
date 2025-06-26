@@ -1,4 +1,18 @@
 """
+TEMPORAIREMENT DÉSACTIVÉ - MIGRATION VERS KKIAPAY
+Ce module sera supprimé une fois la migration KKiaPay terminée.
+
+Nouveau module payments/ avec KKiaPay intégré.
+Documentation : https://kkiapay.me/kkiapay-integration/?lang=en
+Dashboard : https://app.kkiapay.me/dashboard
+
+Mode SANDBOX activé pour tests et validation.
+Changement vers LIVE après validation complète.
+
+VOIR PROJET_HISTORIQUE.md pour suivi détaillé de la migration.
+"""
+
+"""
 Modèles pour la gestion des paiements Mobile Money dans TontiFlex.
 Support pour MTN Mobile Money, Moov Money et autres opérateurs.
 """

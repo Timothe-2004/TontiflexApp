@@ -12,6 +12,20 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import environ
+import os
+
+# Configuration django-environ pour KKiaPay
+env = environ.Env(
+    # Configuration par défaut
+    DEBUG=(bool, False),
+    KKIAPAY_SANDBOX=(bool, True),
+    KKIAPAY_TIMEOUT=(int, 30),
+    KKIAPAY_MAX_RETRIES=(int, 3),
+)
+
+# Lecture du fichier .env
+environ.Env.read_env(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,10 +35,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ea)dvrzq!-zog$cfegzkv7=8!za0dlui4#!fgv2(_t8)x8*uem'
+SECRET_KEY = env('SECRET_KEY', default='django-insecure-ea)dvrzq!-zog$cfegzkv7=8!za0dlui4#!fgv2(_t8)x8*uem')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = []
 
@@ -46,7 +60,8 @@ INSTALLED_APPS = [
     'savings',
     'notifications',
     'drf_spectacular',
-    'mobile_money',
+    'payments',  # NOUVEAU MODULE KKIAPAY
+    'mobile_money',  # TEMPORAIREMENT RÉACTIVÉ pour éviter erreurs (sera supprimé après migration)
 ]
 
 MIDDLEWARE = [
@@ -237,3 +252,48 @@ CORS_ALLOWED_HEADERS = [
 ]
 
 # --- End CORS Configuration ---
+
+# =================================================================
+# KKIAPAY CONFIGURATION - MIGRATION MOBILE MONEY
+# =================================================================
+# Configuration centralisée pour l'agrégateur KKiaPay
+# Documentation : https://kkiapay.me/kkiapay-integration/?lang=en
+# Dashboard : https://app.kkiapay.me/dashboard
+
+# Mode SANDBOX ou LIVE
+KKIAPAY_SANDBOX = env('KKIAPAY_SANDBOX')
+
+# Clés API KKiaPay
+KKIAPAY_PUBLIC_KEY = env('KKIAPAY_PUBLIC_KEY', default='')
+KKIAPAY_PRIVATE_KEY = env('KKIAPAY_PRIVATE_KEY', default='')
+KKIAPAY_SECRET_KEY = env('KKIAPAY_SECRET_KEY', default='')
+
+# URLs API KKiaPay
+KKIAPAY_SANDBOX_URL = env('KKIAPAY_SANDBOX_URL', default='https://api-sandbox.kkiapay.me')
+KKIAPAY_LIVE_URL = env('KKIAPAY_LIVE_URL', default='https://api.kkiapay.me')
+
+# URL active selon le mode
+KKIAPAY_BASE_URL = KKIAPAY_SANDBOX_URL if KKIAPAY_SANDBOX else KKIAPAY_LIVE_URL
+
+# Webhook Configuration
+KKIAPAY_WEBHOOK_URL = env('KKIAPAY_WEBHOOK_URL', default='http://localhost:8000/api/payments/webhook/')
+KKIAPAY_WEBHOOK_SECRET = env('KKIAPAY_WEBHOOK_SECRET', default='')
+
+# Configuration avancée
+KKIAPAY_TIMEOUT = env('KKIAPAY_TIMEOUT')
+KKIAPAY_MAX_RETRIES = env('KKIAPAY_MAX_RETRIES')
+KKIAPAY_LOG_LEVEL = env('KKIAPAY_LOG_LEVEL', default='INFO')
+
+# Devise et pays supportés
+KKIAPAY_CURRENCY = 'XOF'  # Franc CFA
+KKIAPAY_SUPPORTED_COUNTRIES = ['BJ', 'TG', 'SN', 'CI']  # Bénin, Togo, Sénégal, Côte d'Ivoire
+
+# =================================================================
+# MIGRATION NOTES
+# =================================================================
+# 1. Configuration SANDBOX active pour tests
+# 2. Module mobile_money/ temporairement commenté
+# 3. Nouveau module payments/ en cours de développement
+# 4. Workflow métier inchangé côté utilisateur
+# 5. Passage en LIVE après validation complète
+# =================================================================

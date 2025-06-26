@@ -9,7 +9,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExam
 
 # Import des modèles Tontines uniquement
 from .models import Adhesion, Tontine, TontineParticipant, Cotisation, Retrait, SoldeTontine, CarnetCotisation
-from mobile_money.models import TransactionMobileMoney
+from mobile_money.models import TransactionMobileMoney  # TEMPORAIREMENT RÉACTIVÉ (sera supprimé après migration)
 
 # Import des serializers Tontines uniquement
 from .serializers import (
