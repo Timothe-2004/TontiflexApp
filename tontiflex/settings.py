@@ -38,7 +38,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-ea)dvrzq!-zog$cfegzkv7=8!za0dlui4#!fgv2(_t8)x8*uem')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -60,8 +60,8 @@ INSTALLED_APPS = [
     'savings',
     'notifications',
     'drf_spectacular',
-    'payments',  # NOUVEAU MODULE KKIAPAY
-    'mobile_money',  # TEMPORAIREMENT RÉACTIVÉ pour éviter erreurs (sera supprimé après migration)
+    'payments',  # MODULE KKIAPAY - REMPLACE MOBILE_MONEY
+    # 'mobile_money',  # MODULE DÉSACTIVÉ - MIGRATION VERS KKIAPAY UNIQUEMENT
 ]
 
 MIDDLEWARE = [

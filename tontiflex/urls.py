@@ -20,8 +20,8 @@ urlpatterns = [
     path('api/', include('tontines.urls')),      # /api/tontines/
     path('api/', include('savings.urls')),       # /api/savings/
     path('api/', include('loans.urls')),         # /api/loans/
-    path('api/', include('mobile_money.urls')),  # TEMPORAIREMENT RÉACTIVÉ (sera supprimé après migration)
-    path('api/', include('payments.urls')),      # /api/payments/ - NOUVEAU MODULE KKIAPAY
+    # path('api/', include('mobile_money.urls')),  # MODULE SUPPRIMÉ - MIGRATION VERS KKIAPAY
+    path('api/', include('payments.urls')),      # /api/payments/ - MODULE KKIAPAY UNIQUE
     path('api/', include('notifications.urls')), # /api/notifications/
     path('api/', include('accounts.urls_webhook')),
 ]

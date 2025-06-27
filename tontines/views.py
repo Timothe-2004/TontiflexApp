@@ -7,9 +7,9 @@ from django.utils import timezone
 from django.db.models import Sum, Count
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, OpenApiResponse
 
-# Import des modèles Tontines uniquement
+# Import des modèles Tontines et KKiaPay uniquement
 from .models import Adhesion, Tontine, TontineParticipant, Cotisation, Retrait, SoldeTontine, CarnetCotisation
-from mobile_money.models import TransactionMobileMoney  # TEMPORAIREMENT RÉACTIVÉ (sera supprimé après migration)
+from payments.models import KKiaPayTransaction  # Migration vers KKiaPay terminée
 
 # Import des serializers Tontines uniquement
 from .serializers import (
@@ -284,15 +284,18 @@ class AdhesionViewSet(viewsets.ModelViewSet):
                     numero_telephone = serializer.validated_data['numero_mobile_money']
                     operateur = serializer.validated_data['operateur']
                     
-                    # Créer une transaction Mobile Money
-                    transaction = TransactionMobileMoney.objects.create(
-                        numero_telephone=numero_telephone,
-                        montant=adhesion.tontine.frais_adhesion,
-                        type_transaction='paiement',
-                        statut='en_cours',
-                        reference_externe=f"ADH_{adhesion.id}_{int(timezone.now().timestamp())}",
-                        description=f"Paiement adhésion tontine {adhesion.tontine.nom}"
-                    )
+                    # Créer une transaction KKiaPay
+                    from payments.services_migration import migration_service
+                    
+                    transaction_data = {
+                        'user': adhesion.client.user,
+                        'montant': adhesion.tontine.fraisAdhesion,
+                        'telephone': numero_telephone,
+                        'adhesion_id': adhesion.id,
+                        'description': f"Paiement adhésion tontine {adhesion.tontine.nom}"
+                    }
+                    
+                    transaction = migration_service.create_tontine_adhesion_transaction(transaction_data)
                     
                     adhesion.statut = 'paiement_effectue'
                     adhesion.transaction_paiement = transaction
@@ -753,23 +756,25 @@ class TontineParticipantViewSet(viewsets.ModelViewSet):
                     montant = serializer.validated_data['montant']
                     is_commission = serializer.validated_data.get('is_commission', False)
                     
-                    # Créer la transaction Mobile Money
-                    transaction = TransactionMobileMoney.objects.create(
-                        numero_telephone=numero_telephone,
-                        montant=montant,
-                        type_transaction='cotisation',
-                        statut='en_cours',
-                        reference_externe=f"COT_{participant.id}_{int(timezone.now().timestamp())}",
-                        description=f"Cotisation tontine {participant.tontine.nom}",
-                        is_commission=is_commission
-                    )
+                    # Créer la transaction KKiaPay
+                    from payments.services_migration import migration_service
+                    
+                    transaction_data = {
+                        'user': participant.client.user,
+                        'montant': montant,
+                        'telephone': numero_telephone,
+                        'cotisation_id': f"PART_{participant.id}",
+                        'description': f"Cotisation tontine {participant.tontine.nom}"
+                    }
+                    
+                    transaction = migration_service.create_tontine_contribution_transaction(transaction_data)
                     
                     # Créer la cotisation
                     cotisation = Cotisation.objects.create(
                         participant=participant,
                         montant=montant,
                         date_cotisation=timezone.now(),
-                        transaction_mobile_money=transaction,
+                        transaction_kkiapay=transaction,
                         is_commission_sfd=is_commission
                     )
                     

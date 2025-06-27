@@ -483,19 +483,19 @@ class TontineParticipant(models.Model):
         help_text="Statut du participant"
     )
     
-    # Champs pour Mobile Money
+    # Champs pour KKiaPay (remplace Mobile Money)
     fraisAdhesionPayes = models.BooleanField(
         default=False,
         help_text="Indique si les frais d'adhésion ont été payés"
     )
     
     transactionAdhesion = models.ForeignKey(
-        'mobile_money.TransactionMobileMoney',
+        'payments.KKiaPayTransaction',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='adhesions_associees',
-        help_text="Transaction Mobile Money pour les frais d'adhésion"
+        help_text="Transaction KKiaPay pour les frais d'adhésion"
     )
     
     def calculer_solde_disponible(self):
@@ -770,12 +770,12 @@ class Adhesion(models.Model):
     )
     
     transaction_mobile_money = models.ForeignKey(
-        'mobile_money.TransactionMobileMoney',
+        'payments.KKiaPayTransaction',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='workflows_adhesion',
-        help_text="Transaction Mobile Money associée"
+        help_text="Transaction KKiaPay associée"
     )
 
     # =============================================================================

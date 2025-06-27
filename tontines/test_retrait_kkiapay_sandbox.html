@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Retrait Tontines - KKiaPay Sandbox</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- KKiaPay SDK -->
+    <script src="https://cdn.kkiapay.me/k.js"></script>
+    
+    <style>
+        .test-card {
+            border-left: 4px solid #28a745;
+            transition: all 0.3s ease;
+        }
+        
+        .test-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .status-pending {
+            color: #ffc107;
+        }
+        
+        .status-success {
+            color: #28a745;
+        }
+        
+        .status-failed {
+            color: #dc3545;
+        }
+        
+        .log-container {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .test-number {
+            background-color: #e9ecef;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row">
+            <!-- Header -->
+            <div class="col-12">
+                <div class="card bg-primary text-white mb-4">
+                    <div class="card-body">
+                        <h1 class="card-title">🧪 Test Retrait Tontines - KKiaPay Sandbox</h1>
+                        <p class="card-text">Interface de test pour les retraits de tontines via KKiaPay sandbox</p>
+                        <small>📚 Documentation: <a href="https://docs.kkiapay.me/v1/compte/kkiapay-sandbox-guide-de-test" class="text-white" target="_blank">Guide de test KKiaPay</a></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Configuration Panel -->
+            <div class="col-md-6">
+                <div class="card test-card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">⚙️ Configuration Test</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Client de test:</strong></label>
+                            <div id="client-info" class="p-2 bg-light rounded">
+                                <div class="spinner-border spinner-border-sm" role="status"></div>
+                                Chargement des données...
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Tontine:</strong></label>
+                            <div id="tontine-info" class="p-2 bg-light rounded">
+                                <div class="spinner-border spinner-border-sm" role="status"></div>
+                                Chargement...
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Retrait à tester:</strong></label>
+                            <div id="retrait-info" class="p-2 bg-light rounded">
+                                <div class="spinner-border spinner-border-sm" role="status"></div>
+                                Chargement...
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="test-phone" class="form-label"><strong>Numéro de test:</strong></label>
+                            <select id="test-phone" class="form-select">
+                                <option value="">Chargement des numéros de test...</option>
+                            </select>
+                            <small class="form-text text-muted">Sélectionnez un numéro de test officiel KKiaPay</small>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button id="btn-test-retrait" class="btn btn-success btn-lg" disabled>
+                                💳 Tester le Retrait KKiaPay
+                            </button>
+                            <button id="btn-verify-transaction" class="btn btn-outline-info" disabled>
+                                🔍 Vérifier Transaction
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Numéros de test disponibles -->
+                <div class="card test-card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">📱 Numéros de Test Officiels</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="test-numbers-list">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                            Chargement des numéros...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Logs Panel -->
+            <div class="col-md-6">
+                <div class="card test-card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">📋 Logs de Test</h5>
+                        <button id="btn-clear-logs" class="btn btn-sm btn-outline-dark float-end">Effacer</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="logs-container" class="log-container p-3">
+                            <div class="text-muted">Les logs apparaîtront ici...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Statut Transaction -->
+                <div class="card test-card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0">📊 Statut Transaction</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="transaction-status">
+                            <div class="text-muted">Aucune transaction en cours</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Résultats -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card test-card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">🎯 Résultats des Tests</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="test-results">
+                            <div class="alert alert-info">
+                                <h6>🚀 Comment utiliser cette interface:</h6>
+                                <ol>
+                                    <li>Les données de test seront chargées automatiquement depuis le backend</li>
+                                    <li>Sélectionnez un numéro de test dans la liste déroulante</li>
+                                    <li>Cliquez sur "Tester le Retrait KKiaPay" pour ouvrir le widget</li>
+                                    <li>Suivez le processus de paiement dans le widget KKiaPay</li>
+                                    <li>Observez les logs et le statut de la transaction</li>
+                                    <li>Utilisez "Vérifier Transaction" pour confirmer le statut final</li>
+                                </ol>
+                                <p class="mb-0"><strong>Note:</strong> Cette interface utilise le vrai sandbox KKiaPay avec vos clés de test.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                
+                <!-- Configuration -->
+                <div class="card card-shadow mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-cog me-2"></i>
+                            Configuration
+                        </h6>
+                    </div>
+                    <div class="card-body small">
+                        <p><strong>Mode:</strong> <span class="badge bg-warning text-dark">Sandbox</span></p>
+                        <p><strong>Clé publique:</strong> d1297c10...</p>
+                        <p><strong>Méthode:</strong> Mobile Money</p>
+                        <p><strong>Callback:</strong> Activé</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processus de test -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card card-shadow">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list-ol me-2"></i>
+                            Processus de Test
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="test-section">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="number-badge">1</div>
+                                <div>
+                                    <h6 class="mb-1">Cliquer sur "Lancer le paiement"</h6>
+                                    <p class="text-muted mb-0">Le widget KKiaPay s'ouvrira automatiquement</p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="number-badge">2</div>
+                                <div>
+                                    <h6 class="mb-1">Sélectionner "Mobile Money"</h6>
+                                    <p class="text-muted mb-0">Choisir MTN ou Moov selon le numéro de test</p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="number-badge">3</div>
+                                <div>
+                                    <h6 class="mb-1">Saisir le numéro de test</h6>
+                                    <p class="text-muted mb-0">
+                                        Utiliser <code>+22961000000</code> pour un succès simulé
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center">
+                                <div class="number-badge">4</div>
+                                <div>
+                                    <h6 class="mb-1">Confirmer la transaction</h6>
+                                    <p class="text-muted mb-0">Le webhook sera appelé automatiquement</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Numéros de test -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card card-shadow">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Numéros de Test - Succès
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Opérateur</th>
+                                    <th>Numéro</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-primary">MTN Bénin</span></td>
+                                    <td><code>+22961000000</code></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-primary">MTN CI</span></td>
+                                    <td><code>+22507000000</code></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-info">Moov</span></td>
+                                    <td><code>+22966000000</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card card-shadow">
+                    <div class="card-header bg-danger text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-times-circle me-2"></i>
+                            Numéros de Test - Échec
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Opérateur</th>
+                                    <th>Numéro</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-primary">MTN Bénin</span></td>
+                                    <td><code>+22961000001</code></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-primary">MTN CI</span></td>
+                                    <td><code>+22507000001</code></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-info">Moov</span></td>
+                                    <td><code>+22966000001</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Journal des événements -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card card-shadow">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>
+                            Journal des Événements
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="journal" class="bg-dark text-light p-3 rounded" style="min-height: 200px; font-family: monospace;">
+                            <div class="text-success">[INFO] Interface de test chargée</div>
+                            <div class="text-info">[INFO] Mode sandbox KKiaPay activé</div>
+                            <div class="text-warning">[WARN] En attente du lancement du paiement...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Configuration du widget KKiaPay
+        const CONFIG_KKIAPAY = {
+            key: 'd1297c10527a11f0a266e50dce82524c', // Clé publique sandbox
+            amount: 25000, // 25,000 FCFA
+            sandbox: true,
+            phone: '+22961000000', // Numéro de test MTN Bénin
+            position: 'center',
+            theme: '#dc3545', // Rouge pour retrait
+            paymentmethod: 'momo', // Mobile Money uniquement
+            callback: '', // Sera défini dynamiquement
+            data: JSON.stringify({
+                type: 'retrait_tontine',
+                test_mode: true,
+                timestamp: new Date().toISOString()
+            }),
+            description: 'Test retrait tontine - Sandbox KKiaPay'
+        };
+
+        // Journal des événements
+        function ajouterAuJournal(message, type = 'info') {
+            const journal = document.getElementById('journal');
+            const timestamp = new Date().toLocaleTimeString();
+            const couleur = {
+                'info': 'text-info',
+                'success': 'text-success',
+                'error': 'text-danger',
+                'warning': 'text-warning'
+            }[type] || 'text-light';
+            
+            const ligne = document.createElement('div');
+            ligne.className = couleur;
+            ligne.textContent = `[${timestamp}] ${message}`;
+            
+            journal.appendChild(ligne);
+            journal.scrollTop = journal.scrollHeight;
+        }
+
+        // Fonction principale de paiement
+        function lancerPaiementKKiaPay() {
+            ajouterAuJournal('🚀 Lancement du paiement KKiaPay...', 'info');
+            ajouterAuJournal(`💰 Montant: ${CONFIG_KKIAPAY.amount} FCFA`, 'info');
+            ajouterAuJournal(`📱 Téléphone: ${CONFIG_KKIAPAY.phone}`, 'info');
+            
+            // Désactiver le bouton pendant le processus
+            const btnPaiement = document.getElementById('btn-paiement');
+            btnPaiement.disabled = true;
+            btnPaiement.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Ouverture du widget...';
+            
+            try {
+                // Ouvrir le widget KKiaPay
+                openKkiapayWidget(CONFIG_KKIAPAY);
+                ajouterAuJournal('✅ Widget KKiaPay ouvert', 'success');
+                
+                // Mettre à jour le statut
+                document.getElementById('statut-retrait').innerHTML = 
+                    '<i class="fas fa-credit-card me-1"></i> Paiement en cours';
+                document.getElementById('statut-retrait').className = 'status-badge bg-info text-white';
+                
+            } catch (error) {
+                ajouterAuJournal(`❌ Erreur ouverture widget: ${error.message}`, 'error');
+                btnPaiement.disabled = false;
+                btnPaiement.innerHTML = '<i class="fas fa-play me-2"></i>Lancer le paiement';
+            }
+        }
+
+        // Événements KKiaPay
+        document.addEventListener('DOMContentLoaded', function() {
+            ajouterAuJournal('🎯 Configuration des listeners KKiaPay...', 'info');
+            
+            // Listener de succès
+            addSuccessListener(function(response) {
+                ajouterAuJournal('🎉 PAIEMENT RÉUSSI !', 'success');
+                ajouterAuJournal(`📋 Transaction ID: ${response.transactionId}`, 'success');
+                ajouterAuJournal(`💳 Référence: ${response.reference || 'N/A'}`, 'info');
+                
+                // Mettre à jour l'interface
+                document.getElementById('statut-retrait').innerHTML = 
+                    '<i class="fas fa-check-circle me-1"></i> Paiement réussi';
+                document.getElementById('statut-retrait').className = 'status-badge bg-success text-white';
+                
+                // Réactiver le bouton
+                const btnPaiement = document.getElementById('btn-paiement');
+                btnPaiement.disabled = false;
+                btnPaiement.innerHTML = '<i class="fas fa-check me-2"></i>Paiement terminé';
+                btnPaiement.className = 'btn btn-success btn-lg w-100 mb-3';
+                
+                // Simulation de vérification côté serveur
+                setTimeout(function() {
+                    ajouterAuJournal('🔍 Vérification côté serveur...', 'info');
+                    setTimeout(function() {
+                        ajouterAuJournal('✅ Transaction vérifiée et confirmée', 'success');
+                        ajouterAuJournal('💰 Retrait traité avec succès !', 'success');
+                    }, 2000);
+                }, 1000);
+                
+                // Afficher les détails
+                console.log('Réponse KKiaPay:', response);
+                
+                // Sauvegarder l'ID de transaction pour tests ultérieurs
+                localStorage.setItem('last_kkiapay_transaction', response.transactionId);
+            });
+            
+            // Listener d'échec
+            addFailedListener(function(error) {
+                ajouterAuJournal('💥 PAIEMENT ÉCHOUÉ !', 'error');
+                ajouterAuJournal(`❌ Erreur: ${error.message || JSON.stringify(error)}`, 'error');
+                
+                // Mettre à jour l'interface
+                document.getElementById('statut-retrait').innerHTML = 
+                    '<i class="fas fa-times-circle me-1"></i> Paiement échoué';
+                document.getElementById('statut-retrait').className = 'status-badge bg-danger text-white';
+                
+                // Réactiver le bouton
+                const btnPaiement = document.getElementById('btn-paiement');
+                btnPaiement.disabled = false;
+                btnPaiement.innerHTML = '<i class="fas fa-redo me-2"></i>Réessayer';
+                btnPaiement.className = 'btn btn-warning btn-lg w-100 mb-3';
+                
+                console.error('Erreur KKiaPay:', error);
+            });
+            
+            ajouterAuJournal('✅ Listeners configurés avec succès', 'success');
+            ajouterAuJournal('🎮 Interface prête pour le test !', 'success');
+        });
+
+        // Fonction utilitaire pour vérifier une transaction
+        function verifierTransaction() {
+            const transactionId = localStorage.getItem('last_kkiapay_transaction');
+            if (!transactionId) {
+                ajouterAuJournal('⚠️  Aucune transaction à vérifier', 'warning');
+                return;
+            }
+            
+            ajouterAuJournal(`🔍 Vérification de ${transactionId}...`, 'info');
+            
+            // Simuler un appel API de vérification
+            fetch(`/api/payments/verify/${transactionId}/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                ajouterAuJournal(`✅ Statut: ${data.status}`, 'success');
+                ajouterAuJournal(`💰 Montant: ${data.amount} FCFA`, 'info');
+            })
+            .catch(error => {
+                ajouterAuJournal(`❌ Erreur vérification: ${error}`, 'error');
+            });
+        }
+
+        // Auto-lancement optionnel (décommenter pour test automatique)
+        // setTimeout(() => {
+        //     ajouterAuJournal('🤖 Auto-lancement du test...', 'warning');
+        //     lancerPaiementKKiaPay();
+        // }, 2000);
+    </script>
+</body>
+</html>

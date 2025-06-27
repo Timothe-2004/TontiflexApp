@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Retrait Tontine KKiaPay - TontiFlex Production</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #2196F3;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box h3 {
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+        
+        .status-box {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2196F3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .transaction-details {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .detail-value {
+            color: #666;
+        }
+        
+        .amount-highlight {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .sandbox-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .sandbox-notice strong {
+            color: #d68910;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 Test Retrait Tontine</h1>
+            <p>Interface de test KKiaPay Sandbox - TontiFlex Production</p>
+        </div>
+        
+        <div class="content">
+            <div class="sandbox-notice">
+                <strong>⚠️ MODE SANDBOX</strong><br>
+                Ceci est un environnement de test. Aucune transaction réelle ne sera effectuée.
+            </div>
+            
+            <div class="info-box">
+                <h3>🔄 Processus de Retrait</h3>
+                <p>
+                    1. <strong>Demande:</strong> Le client saisit le montant à retirer<br>
+                    2. <strong>Validation:</strong> Vérification du solde disponible<br>
+                    3. <strong>Paiement:</strong> Traitement via KKiaPay<br>
+                    4. <strong>Confirmation:</strong> Notification du succès
+                </p>
+            </div>
+            
+            <form id="retraitForm">
+                <div class="form-group">
+                    <label for="clientNom">Nom du Client</label>
+                    <input type="text" id="clientNom" value="Marie Kouassi" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="clientTelephone">Téléphone Client</label>
+                    <input type="tel" id="clientTelephone" value="+22990123456" required>
+                    <small style="color: #666;">Format: +229XXXXXXXX (numéro Bénin)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tontineName">Tontine</label>
+                    <select id="tontineName" required>
+                        <option value="">Choisir une tontine</option>
+                        <option value="tontine_production_001">Tontine Production KKiaPay</option>
+                        <option value="tontine_test_002">Tontine Test Sandbox</option>
+                        <option value="tontine_demo_003">Tontine Démo Client</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="soldeDisponible">Solde Disponible</label>
+                    <input type="text" id="soldeDisponible" value="300,000 FCFA" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="montantRetrait">Montant à Retirer (FCFA)</label>
+                    <input type="number" id="montantRetrait" min="5000" max="300000" step="1000" 
+                           placeholder="Ex: 50000" required>
+                    <small style="color: #666;">Minimum: 5,000 FCFA - Maximum: 300,000 FCFA</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="operateur">Opérateur Mobile Money</label>
+                    <select id="operateur" required>
+                        <option value="">Choisir un opérateur</option>
+                        <option value="MTN">MTN Mobile Money</option>
+                        <option value="MOOV">Moov Money</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="commentaires">Commentaires (optionnel)</label>
+                    <textarea id="commentaires" rows="3" 
+                              placeholder="Raison du retrait, notes additionnelles..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn" id="submitBtn">
+                    💰 Initier le Retrait KKiaPay
+                </button>
+            </form>
+            
+            <div id="statusBox" class="status-box">
+                <div id="statusContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KKiaPay SDK -->
+    <script src="https://cdn.kkiapay.me/k.js"></script>
+    
+    <script>
+        // Configuration KKiaPay Sandbox
+        const KKIAPAY_CONFIG = {
+            key: "bc6b1da5ad6a47c28b69be4e80d9f51c", // Clé publique sandbox
+            sandbox: true,
+            success: handlePaymentSuccess,
+            failed: handlePaymentFailed,
+            amount: 0,
+            phone: "",
+            name: "",
+            email: "client@tontiflex.com"
+        };
+        
+        // État de la transaction
+        let currentTransaction = null;
+        
+        // Éléments DOM
+        const form = document.getElementById('retraitForm');
+        const statusBox = document.getElementById('statusBox');
+        const statusContent = document.getElementById('statusContent');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        // Gestion du formulaire
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const montant = parseInt(document.getElementById('montantRetrait').value);
+            const telephone = document.getElementById('clientTelephone').value;
+            const operateur = document.getElementById('operateur').value;
+            const tontine = document.getElementById('tontineName').value;
+            const commentaires = document.getElementById('commentaires').value;
+            
+            // Validation
+            if (!montant || montant < 5000 || montant > 300000) {
+                showStatus('error', 'Montant invalide. Doit être entre 5,000 et 300,000 FCFA.');
+                return;
+            }
+            
+            if (!telephone || !operateur || !tontine) {
+                showStatus('error', 'Veuillez remplir tous les champs obligatoires.');
+                return;
+            }
+            
+            // Calculer les frais (1.5% du montant)
+            const frais = Math.ceil(montant * 0.015);
+            const montantNet = montant - frais;
+            
+            // Créer la transaction
+            currentTransaction = {
+                id: 'TXN_' + Date.now(),
+                montant: montant,
+                frais: frais,
+                montantNet: montantNet,
+                telephone: telephone,
+                operateur: operateur,
+                tontine: tontine,
+                commentaires: commentaires,
+                dateCreation: new Date().toISOString(),
+                statut: 'pending'
+            };
+            
+            // Afficher les détails et lancer KKiaPay
+            showTransactionDetails();
+            initiateKKiaPayment();
+        });
+        
+        function showTransactionDetails() {
+            const details = `
+                <div class="transaction-details">
+                    <h4>📋 Détails de la Transaction</h4>
+                    <div class="detail-row">
+                        <span class="detail-label">ID Transaction:</span>
+                        <span class="detail-value">${currentTransaction.id}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Montant demandé:</span>
+                        <span class="detail-value amount-highlight">${currentTransaction.montant.toLocaleString()} FCFA</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Frais KKiaPay (1.5%):</span>
+                        <span class="detail-value">${currentTransaction.frais.toLocaleString()} FCFA</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Montant net client:</span>
+                        <span class="detail-value amount-highlight">${currentTransaction.montantNet.toLocaleString()} FCFA</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Téléphone:</span>
+                        <span class="detail-value">${currentTransaction.telephone}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Opérateur:</span>
+                        <span class="detail-value">${currentTransaction.operateur}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Tontine:</span>
+                        <span class="detail-value">${currentTransaction.tontine}</span>
+                    </div>
+                </div>
+            `;
+            
+            showStatus('pending', `
+                <div class="loading"></div>
+                <strong>🔄 Traitement en cours...</strong><br>
+                Préparation du paiement KKiaPay
+                ${details}
+            `);
+        }
+        
+        function initiateKKiaPayment() {
+            // Désactiver le bouton
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="loading"></div> Traitement...';
+            
+            // Configuration KKiaPay
+            const config = {
+                ...KKIAPAY_CONFIG,
+                amount: currentTransaction.montant,
+                phone: currentTransaction.telephone.replace('+229', ''),
+                name: document.getElementById('clientNom').value,
+                reason: `Retrait tontine - ${currentTransaction.tontine}`
+            };
+            
+            // Simuler délai de traitement
+            setTimeout(() => {
+                // Initialiser KKiaPay
+                try {
+                    openKkiapayWidget(config);
+                } catch (error) {
+                    console.error('Erreur KKiaPay:', error);
+                    handlePaymentFailed({
+                        error: 'Erreur de configuration KKiaPay',
+                        message: error.message
+                    });
+                }
+            }, 2000);
+        }
+        
+        function handlePaymentSuccess(response) {
+            console.log('Paiement réussi:', response);
+            
+            // Mettre à jour la transaction
+            currentTransaction.statut = 'success';
+            currentTransaction.kkiapayTransactionId = response.transactionId;
+            currentTransaction.dateCompletion = new Date().toISOString();
+            
+            const successDetails = `
+                <div class="transaction-details">
+                    <h4>✅ Retrait Réussi!</h4>
+                    <div class="detail-row">
+                        <span class="detail-label">ID KKiaPay:</span>
+                        <span class="detail-value">${response.transactionId}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Montant reçu:</span>
+                        <span class="detail-value amount-highlight">${currentTransaction.montantNet.toLocaleString()} FCFA</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Téléphone:</span>
+                        <span class="detail-value">${currentTransaction.telephone}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Statut:</span>
+                        <span class="detail-value">✅ Confirmé</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Date:</span>
+                        <span class="detail-value">${new Date().toLocaleString('fr-FR')}</span>
+                    </div>
+                </div>
+            `;
+            
+            showStatus('success', `
+                <strong>🎉 Retrait effectué avec succès!</strong><br>
+                Le montant a été transféré sur votre mobile money.
+                ${successDetails}
+            `);
+            
+            // Réactiver le bouton pour un nouveau retrait
+            setTimeout(() => {
+                resetForm();
+            }, 5000);
+        }
+        
+        function handlePaymentFailed(error) {
+            console.error('Paiement échoué:', error);
+            
+            // Mettre à jour la transaction
+            if (currentTransaction) {
+                currentTransaction.statut = 'failed';
+                currentTransaction.erreur = error;
+            }
+            
+            showStatus('error', `
+                <strong>❌ Échec du retrait</strong><br>
+                ${error.message || 'Une erreur est survenue lors du traitement.'}
+                <br><br>
+                <small>Veuillez vérifier vos informations et réessayer.</small>
+            `);
+            
+            // Réactiver le bouton
+            setTimeout(() => {
+                resetForm();
+            }, 3000);
+        }
+        
+        function showStatus(type, message) {
+            statusBox.className = `status-box status-${type}`;
+            statusContent.innerHTML = message;
+            statusBox.style.display = 'block';
+        }
+        
+        function resetForm() {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '💰 Initier le Retrait KKiaPay';
+            
+            // Optionnel: réinitialiser le formulaire
+            // form.reset();
+            // statusBox.style.display = 'none';
+        }
+        
+        // Validation en temps réel du montant
+        document.getElementById('montantRetrait').addEventListener('input', function(e) {
+            const montant = parseInt(e.target.value);
+            const statusSpan = document.querySelector('#montantRetrait + small');
+            
+            if (montant && (montant < 5000 || montant > 300000)) {
+                e.target.style.borderColor = '#dc3545';
+                statusSpan.style.color = '#dc3545';
+                statusSpan.textContent = 'Montant doit être entre 5,000 et 300,000 FCFA';
+            } else {
+                e.target.style.borderColor = '#e0e0e0';
+                statusSpan.style.color = '#666';
+                statusSpan.textContent = 'Minimum: 5,000 FCFA - Maximum: 300,000 FCFA';
+            }
+        });
+        
+        // Validation du téléphone
+        document.getElementById('clientTelephone').addEventListener('input', function(e) {
+            const phone = e.target.value;
+            const phoneRegex = /^\+229[0-9]{8}$/;
+            
+            if (phone && !phoneRegex.test(phone)) {
+                e.target.style.borderColor = '#dc3545';
+            } else {
+                e.target.style.borderColor = '#e0e0e0';
+            }
+        });
+        
+        // Initialisation
+        console.log('Interface de test retrait KKiaPay chargée');
+        console.log('Configuration:', KKIAPAY_CONFIG);
+    </script>
+</body>
+</html>
