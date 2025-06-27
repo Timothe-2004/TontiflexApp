@@ -30,6 +30,44 @@ class KKiaPayException(Exception):
 
 
 class KKiaPayService:
+    def create_payment_token(self, transaction_id, expires_in=86400):
+        """
+        Crée un token JWT temporaire pour un lien de paiement sécurisé (valide 24h par défaut)
+        """
+        import jwt
+        from datetime import datetime, timedelta
+        secret = self.config.secret_key
+        payload = {
+            'transaction_id': str(transaction_id),
+            'exp': datetime.utcnow() + timedelta(seconds=expires_in)
+        }
+        return jwt.encode(payload, secret, algorithm='HS256')
+
+    def validate_payment_token(self, token):
+        """
+        Valide un token JWT de paiement et retourne le transaction_id s'il est valide
+        """
+        import jwt
+        secret = self.config.secret_key
+        try:
+            payload = jwt.decode(token, secret, algorithms=['HS256'])
+            return payload['transaction_id']
+        except jwt.ExpiredSignatureError:
+            raise KKiaPayException("Token de paiement expiré", error_code="TOKEN_EXPIRED")
+        except jwt.InvalidTokenError:
+            raise KKiaPayException("Token de paiement invalide", error_code="TOKEN_INVALID")
+
+    def generate_payment_link(self, transaction_id, return_url=None):
+        """
+        Génère un lien de paiement sécurisé pour le widget KKiaPay
+        """
+        token = self.create_payment_token(transaction_id)
+        base_url = self.config.payment_widget_url if hasattr(self.config, 'payment_widget_url') and self.config.payment_widget_url else '/payments/widget/'
+        url = f"{base_url}?token={token}"
+        if return_url:
+            from urllib.parse import urlencode
+            url += f"&{urlencode({'return_url': return_url})}"
+        return url
     """
     Service centralisé pour toutes les opérations KKiaPay
     """

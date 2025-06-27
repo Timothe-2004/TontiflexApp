@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Paiement KKIAPAY SANDBOX</title>
+  <script src="https://cdn.kkiapay.me/k.js"></script>
+</head>
+<body>
+  <button onclick="testerPaiementKKiapay()">Tester Paiement KKIAPAY</button>
+  <pre id="result"></pre>
+  <script>
+    function testerPaiementKKiapay() {
+      openKkiapayWidget({
+        amount: 1000,
+        key: 'd1297c10527a11f0a266e50dce82524c', // ta clé publique SANDBOX
+        sandbox: true,
+        phone: '+22961000000', // numéro de test officiel
+        callback: 'http://localhost:8000/api/payments/webhook/', // ton endpoint webhook
+        description: 'Test SANDBOX TontiFlex'
+      });
+
+      addSuccessListener(response => {
+        document.getElementById('result').textContent = 'Paiement réussi ! transactionId = ' + response.transactionId;
+        // Note ce transactionId pour le vérifier côté Python
+        console.log('Paiement réussi:', response);
+      });
+
+      addFailedListener(error => {
+        document.getElementById('result').textContent = 'Paiement échoué : ' + JSON.stringify(error);
+        console.log('Paiement échoué:', error);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -33,6 +33,98 @@ User = get_user_model()
 
 
 class KKiaPayArchitectureTest:
+    def test_verify_transaction_id(self, transaction_id):
+        """Test de vérification d'une transaction KKIAPAY existante (SANDBOX)"""
+        from kkiapay import Kkiapay
+        print("\n" + "="*70)
+        print("🔎 TEST: VÉRIFICATION TRANSACTION KKIAPAY (SANDBOX)")
+        print("="*70)
+        try:
+            k = Kkiapay(
+                kkiapay_config.public_key,
+                kkiapay_config.private_key,
+                kkiapay_config.secret_key,
+                sandbox=True
+            )
+            result = k.verify_transaction(transaction_id)
+            print(f"📋 Statut de la transaction: {result}")
+            return result
+        except Exception as e:
+            print(f"❌ Erreur lors de la vérification: {e}")
+            return None
+    def test_6_initiate_and_verify_payment_sandbox(self):
+        """Test 6: Initiation d'un paiement via l'API REST SANDBOX, vérification et enregistrement"""
+        import requests
+        from kkiapay import Kkiapay
+        print("\n" + "="*70)
+        print("💸 TEST 6: INITIATION & VÉRIFICATION PAIEMENT KKIAPAY (SANDBOX)")
+        print("="*70)
+
+        # Utilisation d'un numéro de test officiel (succès immédiat)
+        phone = self.test_numbers['mtn_benin_success']
+        amount = 1000
+        reason = "Test SANDBOX TontiFlex"
+        callback_url = getattr(kkiapay_config, 'webhook_url', None)
+
+        url = "https://api-sandbox.kkiapay.me/api/v1/transactions/initiate"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {kkiapay_config.public_key}"
+        }
+        data = {
+            "amount": amount,
+            "phone": phone,
+            "reason": reason,
+        }
+        if callback_url:
+            data["callback"] = callback_url
+
+        print(f"➡️  Initiation du paiement SANDBOX pour {amount} FCFA, {phone}")
+        try:
+            response = requests.post(url, json=data, headers=headers, timeout=15)
+            response.raise_for_status()
+            result = response.json()
+            print(f"✅ Paiement initié: {result}")
+        except Exception as e:
+            print(f"❌ Erreur lors de l'initiation: {e}")
+            return False
+
+        transaction_id = result.get("transactionId") or result.get("transaction_id")
+        if not transaction_id:
+            print("❌ transactionId manquant dans la réponse")
+            return False
+
+        # Vérification de la transaction via SDK Python
+        print(f"🔎 Vérification de la transaction {transaction_id} via SDK Python...")
+        try:
+            k = Kkiapay(
+                kkiapay_config.public_key,
+                kkiapay_config.private_key,
+                kkiapay_config.secret_key,
+                sandbox=True
+            )
+            verification = k.verify_transaction(transaction_id)
+            print(f"📋 Statut de la transaction: {verification}")
+        except Exception as e:
+            print(f"❌ Erreur lors de la vérification: {e}")
+            return False
+
+        # Enregistrement dans la base
+        try:
+            tx = KKiaPayTransaction.objects.create(
+                user=self.test_user,
+                reference_tontiflex=transaction_id,
+                montant=amount,
+                status=verification.get('status', 'pending'),
+                phone=phone
+            )
+            print(f"💾 Transaction enregistrée: {tx}")
+        except Exception as e:
+            print(f"❌ Erreur lors de l'enregistrement DB: {e}")
+            return False
+
+        print("✅ Test SANDBOX complet: initiation, vérification, enregistrement OK")
+        return True
     """
     Test de l'architecture KKiaPay CORRECTE
     
@@ -46,7 +138,7 @@ class KKiaPayArchitectureTest:
         # Numéros de test OFFICIELS selon la documentation
         self.test_numbers = {
             # MTN Bénin - NUMÉROS OFFICIELS
-            'mtn_benin_success': '+22961000000',     # Succès immédiat
+            'mtn_benin_success': '+229 ',     # Succès immédiat
             'mtn_benin_success2': '+22997000000',    # Succès immédiat alternatif
             'mtn_benin_delayed': '+22961100000',     # Succès avec délai 1 min
             'mtn_benin_error': '+22961000001',       # Processing error
@@ -275,13 +367,12 @@ class KKiaPayArchitectureTest:
         
         # Tests séquentiels
         results = []
-        
         results.append(self.test_1_configuration())
         results.append(self.test_2_sdk_python_officiel())
         results.append(self.test_3_architecture_frontend_needed())
         results.append(self.test_4_widget_javascript_example())
         results.append(self.test_5_database_transactions())
-        
+        results.append(self.test_6_initiate_and_verify_payment_sandbox())
         # Résumé final
         self.display_final_summary(results)
     

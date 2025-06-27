@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from .models import Notification
 from typing import Dict, List, Optional, Any
 import logging
+from drf_spectacular.utils import extend_schema, OpenApiExample
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -268,6 +269,71 @@ class NotificationService:
                 logger.error(f"Erreur lors de la création de notification pour {utilisateur.username}: {str(e)}")
         
         return notifications
+    
+    @staticmethod
+    @extend_schema(
+        summary="Envoyer un lien de paiement KKIAPAY (email/SMS)",
+        description="""
+        Envoie une notification à l'utilisateur avec un lien de paiement sécurisé KKIAPAY (email ou SMS).
+        Utilisé pour les adhésions, cotisations, épargne, prêts, etc.
+        """,
+        request=None,
+        responses={200: "Notification créée et envoyée"},
+        examples=[
+            OpenApiExample(
+                "Notification paiement adhésion",
+                value={
+                    "utilisateur": 123,
+                    "montant": 5000,
+                    "motif": "Frais d'adhésion Tontine Solidaire",
+                    "payment_link": "https://tontiflex.com/payments/widget/?token=xxxx",
+                    "canal": "email"
+                }
+            )
+        ]
+    )
+    def send_payment_link_email_sms(
+        utilisateur,
+        montant,
+        motif,
+        payment_link,
+        canal='email',
+        objet_lie=None,
+        extra_data=None
+    ) -> Notification:
+        """
+        Envoie une notification (email/SMS) avec un lien de paiement sécurisé KKIAPAY.
+        """
+        titre = "Paiement requis - Action nécessaire"
+        message = (
+            f"Veuillez effectuer le paiement de {montant} FCFA pour : {motif}.\n"
+            f"Cliquez sur le lien sécurisé pour payer via Mobile Money : {payment_link}"
+        )
+        actions = [
+            {
+                'type': 'primary',
+                'label': f'Payer {montant} FCFA',
+                'url': payment_link,
+                'method': 'GET',
+                'confirm': f'Confirmer le paiement de {montant} FCFA ?'
+            }
+        ]
+        donnees_supplementaires = extra_data or {}
+        donnees_supplementaires.update({
+            'montant': montant,
+            'motif': motif,
+            'payment_link': payment_link,
+            'type_action': 'paiement_kkiapay'
+        })
+        return NotificationService.creer_notification(
+            utilisateur=utilisateur,
+            titre=titre,
+            message=message,
+            canal=canal,
+            objet_lie=objet_lie,
+            donnees_supplementaires=donnees_supplementaires,
+            actions=actions
+        )
 
 
 

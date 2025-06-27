@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Paiement TontiFlex</title>
+    <script src="https://cdn.kkiapay.me/k.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7f7; }
+        .payment-container { max-width: 400px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
+        .test-numbers { background: #f0f8ff; padding: 1em; border-radius: 6px; margin-top: 1em; }
+        .btn { background: #0a7cff; color: #fff; border: none; padding: 0.7em 1.5em; border-radius: 4px; font-size: 1.1em; cursor: pointer; }
+        .btn:disabled { background: #ccc; }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <h2 id="desc">Paiement TontiFlex</h2>
+        <p id="amount"></p>
+        <p id="type"></p>
+        <button id="pay-btn" class="btn">Payer maintenant</button>
+        <div class="test-numbers">
+            <h4>Numéros de test SANDBOX :</h4>
+            <ul>
+                <li>MTN Succès : +22997000000</li>
+                <li>MOOV Succès : +22968000000</li>
+                <li>MTN Erreur : +22961000002</li>
+            </ul>
+        </div>
+        <pre id="result"></pre>
+    </div>
+    <script>
+    // Récupère le token de l'URL
+    function getQueryParam(name) {
+        const url = new URL(window.location.href);
+        return url.searchParams.get(name);
+    }
+    async function fetchTransaction(token) {
+        const resp = await fetch(`/api/payments/transaction-from-token/?token=${token}`);
+        if (!resp.ok) throw new Error('Token invalide ou expiré');
+        return await resp.json();
+    }
+    async function main() {
+        const token = getQueryParam('token');
+        if (!token) {
+            document.getElementById('result').textContent = 'Token manquant dans l’URL.';
+            document.getElementById('pay-btn').disabled = true;
+            return;
+        }
+        let tx;
+        try {
+            tx = await fetchTransaction(token);
+        } catch (e) {
+            document.getElementById('result').textContent = e.message;
+            document.getElementById('pay-btn').disabled = true;
+            return;
+        }
+        document.getElementById('desc').textContent = tx.description || 'Paiement TontiFlex';
+        document.getElementById('amount').textContent = 'Montant : ' + tx.montant + ' FCFA';
+        document.getElementById('type').textContent = 'Type : ' + (tx.type_transaction || 'N/A');
+        document.getElementById('pay-btn').onclick = function() {
+            openKkiapayWidget({
+                amount: tx.montant,
+                key: tx.public_key,
+                sandbox: true,
+                phone: tx.numero_telephone || '',
+                callback: tx.callback_url || '',
+                description: tx.description || 'Paiement TontiFlex'
+            });
+            addSuccessListener(function(response) {
+                document.getElementById('result').textContent = '✅ Paiement réussi! TransactionId: ' + response.transactionId;
+                // Optionnel: redirection ou appel backend
+            });
+            addFailedListener(function(error) {
+                document.getElementById('result').textContent = '❌ Paiement échoué: ' + JSON.stringify(error);
+            });
+        };
+    }
+    main();
+    </script>
+</body>
+</html>

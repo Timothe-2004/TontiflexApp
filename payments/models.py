@@ -100,6 +100,15 @@ class KKiaPayTransaction(models.Model):
         blank=True,
         help_text="Réponse complète de l'API KKiaPay"
     )
+
+    # Champs enrichis pour intégration complète
+    webhook_received_at = models.DateTimeField(null=True, blank=True, help_text="Horodatage réception webhook")
+    error_details = models.JSONField(default=dict, blank=True, help_text="Détails d'erreur structurés")
+    retry_count = models.PositiveIntegerField(default=0, help_text="Nombre de tentatives webhook/API")
+    callback_url = models.URLField(max_length=300, blank=True, null=True, help_text="URL de callback utilisée pour cette transaction")
+    metadata = models.JSONField(default=dict, blank=True, help_text="Métadonnées métier/contextuelles")
+    kkiapay_fees = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Frais KKiaPay prélevés")
+    net_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, help_text="Montant net après frais")
     
     # Timestamps
     created_at = models.DateTimeField(default=timezone.now)

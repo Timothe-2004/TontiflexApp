@@ -1,3 +1,35 @@
+from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from .services import kkiapay_service
+# --- Endpoint API pour valider un token et retourner la transaction (pour le widget JS) ---
+class TransactionFromTokenView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        token = request.GET.get('token')
+        if not token:
+            return Response({'error': 'Token manquant'}, status=400)
+        try:
+            transaction_id = kkiapay_service.validate_payment_token(token)
+            tx = KKiaPayTransaction.objects.get(id=transaction_id)
+            data = {
+                'id': str(tx.id),
+                'montant': float(tx.montant),
+                'type_transaction': tx.type_transaction,
+                'description': tx.description,
+                'public_key': kkiapay_config.public_key,
+                'callback_url': tx.callback_url or kkiapay_config.webhook_url,
+                'numero_telephone': tx.numero_telephone,
+            }
+            return Response(data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+
+# --- Vue Django pour servir le template widget.html ---
+from django.views import View
+class PaymentWidgetView(View):
+    def get(self, request):
+        return render(request, 'payments/widget.html')
 """
 Views Django REST Framework pour le module Payments KKiaPay
 ===========================================================
@@ -312,6 +344,47 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+
+# --- Endpoint API pour générer un lien de paiement sécurisé ---
+from rest_framework import serializers
+
+class GeneratePaymentLinkSerializer(serializers.Serializer):
+    montant = serializers.DecimalField(max_digits=15, decimal_places=2)
+    numero_telephone = serializers.CharField(max_length=20)
+    type_transaction = serializers.CharField(max_length=50)
+    description = serializers.CharField(max_length=200, required=False)
+    objet_id = serializers.IntegerField(required=False)
+    objet_type = serializers.CharField(max_length=50, required=False)
+    metadata = serializers.JSONField(required=False)
+    callback_url = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .services import kkiapay_service
+
+class GeneratePaymentLinkView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = GeneratePaymentLinkSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = request.user
+        data = serializer.validated_data
+        # Création de la transaction en base
+        transaction = kkiapay_service.initiate_payment(
+            user=user,
+            amount=data["montant"],
+            phone_number=data["numero_telephone"],
+            transaction_type=data["type_transaction"],
+            description=data.get("description", ""),
+            object_id=data.get("objet_id"),
+            object_type=data.get("objet_type", ""),
+        )
+        # Génération du lien sécurisé
+        payment_link = kkiapay_service.generate_payment_link(transaction.id, return_url=data.get("callback_url"))
+        return Response({"payment_link": payment_link, "transaction_id": str(transaction.id)}, status=201)
 
 # Vue pour les webhooks (incluse dans ce module)
 webhook_view = KKiaPayWebhookView.as_view()

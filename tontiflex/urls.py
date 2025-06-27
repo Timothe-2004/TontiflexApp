@@ -23,4 +23,5 @@ urlpatterns = [
     path('api/', include('mobile_money.urls')),  # TEMPORAIREMENT RÉACTIVÉ (sera supprimé après migration)
     path('api/', include('payments.urls')),      # /api/payments/ - NOUVEAU MODULE KKIAPAY
     path('api/', include('notifications.urls')), # /api/notifications/
+    path('api/', include('accounts.urls_webhook')),
 ]
