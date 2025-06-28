@@ -38,9 +38,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-ea)dvrzq!-zog$cfegzkv7=8!za0dlui4#!fgv2(_t8)x8*uem')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = env('DEBUG', default=True)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '0.0.0.0', '*'])
 
 
 # Application definition
@@ -162,26 +162,76 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'TontiFlex API',
-    'DESCRIPTION': 'API pour la gestion des tontines et comptes d\'épargne - Système de Finance Décentralisée',
-    'VERSION': '1.0.0',
+    'TITLE': 'TontiFlex API - Système de Finance Décentralisée',
+    'DESCRIPTION': '''
+    API complète pour la gestion des tontines, comptes d'épargne et prêts dans un système de finance décentralisée (SFD).
+    
+    ## Fonctionnalités principales :
+    
+    ### 🏦 Gestion des Comptes
+    - Clients, Agents SFD, Superviseurs, Administrateurs
+    - Authentification JWT sécurisée
+    - Gestion des rôles et permissions
+    
+    ### 💰 Tontines
+    - Création et gestion des tontines
+    - Adhésion des clients avec paiement KKiaPay
+    - Cotisations et retraits
+    - Suivi des soldes et historiques
+    
+    ### 💳 Épargne
+    - Ouverture de comptes épargne
+    - Dépôts et retraits avec validation agent
+    - Calcul d'intérêts
+    
+    ### 🏛️ Prêts
+    - Demandes de prêt avec workflow Superviseur → Admin
+    - Génération automatique d'échéanciers
+    - Remboursements via KKiaPay
+    - Calcul de pénalités
+    
+    ### 💸 Paiements (KKiaPay)
+    - Intégration complète avec l'agrégateur KKiaPay
+    - Support MTN Money, Moov Money, Orange Money
+    - Webhooks pour confirmations temps réel
+    - Mode SANDBOX pour tests
+    
+    ### 📬 Notifications
+    - Notifications push, email et SMS
+    - Alertes automatiques pour transactions
+    - Rappels de remboursement
+    
+    ## Authentification
+    Utilisez le token JWT dans l'en-tête Authorization : `Bearer YOUR_ACCESS_TOKEN`
+    ''',
+    'VERSION': '2.0.0',
+    'CONTACT': {
+        'name': 'TontiFlex API Support',
+        'email': 'support@tontiflex.com',
+    },
+    'LICENSE': {
+        'name': 'MIT License',
+    },
     'COMPONENT_SPLIT_REQUEST': True,
     'SCHEMA_PATH_PREFIX': r'/api/',
     'SERVE_INCLUDE_SCHEMA': False,
     'SWAGGER_UI_SETTINGS': {
         'deepLinking': True,
         'persistAuthorization': True,
-        'displayOperationId': False,
-        'defaultModelsExpandDepth': 1,
-        'defaultModelExpandDepth': 1,
-        'defaultModelRendering': 'example',
+        'displayOperationId': True,
+        'defaultModelsExpandDepth': 2,
+        'defaultModelExpandDepth': 2,
+        'defaultModelRendering': 'model',
         'displayRequestDuration': True,
-        'docExpansion': 'none',
+        'docExpansion': 'list',
         'filter': True,
         'showExtensions': True,
         'showCommonExtensions': True,
-        'requestInterceptor': '(req) => { console.log("Request:", req); return req; }',
-        'responseInterceptor': '(res) => { console.log("Response:", res); return res; }',
+        'tryItOutEnabled': True,
+        'requestInterceptor': '(req) => { console.log("🚀 API Request:", req); return req; }',
+        'responseInterceptor': '(res) => { console.log("📨 API Response:", res); return res; }',
+        'supportedSubmitMethods': ['get', 'post', 'put', 'patch', 'delete', 'head'],
+        'validatorUrl': None,
     },
     'SECURITY': [
         {
@@ -194,14 +244,52 @@ SPECTACULAR_SETTINGS = {
                 'type': 'http',
                 'scheme': 'bearer',
                 'bearerFormat': 'JWT',
-                'description': 'JWT Authorization header using the Bearer scheme. Enter: Bearer YOUR_ACCESS_TOKEN'
+                'description': 'JWT Authorization header using the Bearer scheme. Format: Bearer YOUR_ACCESS_TOKEN'
             }
         }
     },
     'SERVERS': [
         {
             'url': 'http://localhost:8000',
-            'description': 'Serveur de développement'
+            'description': 'Serveur de développement local'
+        },
+        {
+            'url': 'http://127.0.0.1:8000',
+            'description': 'Serveur de développement (127.0.0.1)'
+        }
+    ],
+    'TAGS': [
+        {
+            'name': 'Authentication',
+            'description': 'Endpoints d\'authentification et gestion des tokens JWT'
+        },
+        {
+            'name': 'Accounts',
+            'description': 'Gestion des comptes utilisateurs (Clients, Agents, Admins)'
+        },
+        {
+            'name': 'Tontines',
+            'description': 'Gestion des tontines, adhésions, cotisations et retraits'
+        },
+        {
+            'name': 'Savings',
+            'description': 'Comptes d\'épargne, dépôts et retraits'
+        },
+        {
+            'name': 'Loans',
+            'description': 'Demandes de prêt, échéanciers et remboursements'
+        },
+        {
+            'name': 'Payments',
+            'description': 'Intégration KKiaPay - Paiements Mobile Money'
+        },
+        {
+            'name': 'Notifications',
+            'description': 'Système de notifications push, email et SMS'
+        },
+        {
+            'name': 'Webhooks',
+            'description': 'Webhooks pour confirmations de paiement temps réel'
         }
     ],
 }
@@ -233,6 +321,8 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -250,6 +340,15 @@ CORS_ALLOWED_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+# --- Security Settings ---
+# Force HTTP only for development server
+SECURE_SSL_REDIRECT = False
+SECURE_PROXY_SSL_HEADER = None
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # --- End CORS Configuration ---
 

@@ -1445,9 +1445,8 @@ class RepaymentScheduleViewSet(viewsets.ReadOnlyModelViewSet):
                 value={
                     "echeance": 123,
                     "montant": 44424,
-                    "numero_telephone": "+22370123456",
-                    "operateur": "MTN",
-                    "pin_mobile_money": "1234",
+                    "numero_telephone": "+22370123456",  # MIGRATION : KKiaPay simplifié
+                    # operateur et pin_mobile_money supprimés - KKiaPay gère automatiquement
                     "description": "Remboursement échéance mensuelle juin 2025"
                 }
             ),
@@ -1457,8 +1456,6 @@ class RepaymentScheduleViewSet(viewsets.ReadOnlyModelViewSet):
                     "echeance": 124,
                     "montant": 20000,
                     "numero_telephone": "+22369876543",
-                    "operateur": "MOOV", 
-                    "pin_mobile_money": "0000",
                     "description": "Paiement partiel - solde à reporter"
                 }
             )
@@ -1553,12 +1550,12 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 echeance=echeance,
                 montant=montant,
                 numero_telephone=self.request.data.get('numero_telephone'),
-                statut_mobile_money='en_attente'
+                statut_kkiapay='pending'
             )
             
-            # Initier le paiement Mobile Money
-            from .tasks import traiter_remboursement_mobile_money
-            traiter_remboursement_mobile_money(paiement.id)
+            # Initier le paiement KKiaPay
+            from .tasks import traiter_remboursement_kkiapay
+            traiter_remboursement_kkiapay(paiement.id)
             
             logger.info(f"Paiement {paiement.id} créé pour échéance {echeance.id}")
             
@@ -1616,7 +1613,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
                     },
                     'mode_paiement': {
                         'type': 'string',
-                        'enum': ['mobile_money_manual', 'especes_guichet', 'virement_bancaire', 'cheque'],
+                        'enum': ['kkiapay_auto', 'especes_guichet', 'virement_bancaire', 'cheque'],
                         'description': 'Mode de paiement confirmé'
                     }
                 },
@@ -1635,7 +1632,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 value={
                     "reference_externe": "MTN_REF_789456123",
                     "commentaire": "Confirmation manuelle après timeout technique MTN - paiement vérifié sur relevé opérateur",
-                    "mode_paiement": "mobile_money_manual"
+                    "mode_paiement": "kkiapay_auto"
                 }
             ),
             OpenApiExample(
@@ -1660,7 +1657,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        if paiement.statut_mobile_money == 'confirme':
+        if paiement.statut_kkiapay == 'success':
             return Response(
                 {'erreur': 'Ce paiement est déjà confirmé'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -1669,7 +1666,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
         try:
             with transaction.atomic():
                 # Confirmer le paiement
-                paiement.statut_mobile_money = 'confirme'
+                paiement.statut_kkiapay = 'success'
                 paiement.date_confirmation = timezone.now()
                 paiement.reference_externe = request.data.get('reference_externe', '')
                 paiement.confirme_par = request.user

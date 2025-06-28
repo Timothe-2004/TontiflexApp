@@ -1012,8 +1012,8 @@ class Payment(models.Model):
         help_text="Montant des pénalités incluses"
     )
     
-    transaction_mobile_money = models.ForeignKey(
-        'mobile_money.TransactionMobileMoney',
+    transaction_kkiapay = models.ForeignKey(  # MIGRATION : transaction_mobile_money → transaction_kkiapay
+        'payments.KKiaPayTransaction',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

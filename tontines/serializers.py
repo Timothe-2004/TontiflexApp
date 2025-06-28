@@ -3,7 +3,7 @@ Serializers Django REST Framework pour le module Tont    class Meta:
         model = Adhesion
         fields = [
             'id', 'client', 'client_nom', 'tontine', 'tontine_nom',
-            'montant_mise', 'numero_telephone_paiement', 'operateur_mobile_money',
+            'montant_mise', 'numero_telephone_paiement',  # MIGRATION : operateur_mobile_money supprimé
             'document_identite', 'statut_actuel', 'etape_actuelle',
             'date_creation', 'date_validation_agent', 'date_paiement_frais',
             'date_integration', 'frais_adhesion_calcules', 'agent_validateur',
@@ -120,15 +120,11 @@ class ValiderAgentRequestSerializer(serializers.Serializer):
 
 class PayerRequestSerializer(serializers.Serializer):
     """Serializer pour l'action payer sur AdhesionViewSet."""
-    numero_mobile_money = serializers.CharField(
+    numero_telephone = serializers.CharField(  # MIGRATION : numero_mobile_money → numero_telephone
         max_length=15,
-        help_text="Numéro de téléphone Mobile Money"
+        help_text="Numéro de téléphone pour le paiement KKiaPay"
     )
-    operateur = serializers.ChoiceField(
-        choices=[('mtn', 'MTN'), ('moov', 'Moov')],
-        default='mtn',
-        help_text="Opérateur Mobile Money"
-    )
+    # MIGRATION : operateur supprimé - KKiaPay gère tous les opérateurs automatiquement
 
 
 class IntegrerRequestSerializer(serializers.Serializer):
@@ -147,15 +143,11 @@ class CotiserRequestSerializer(serializers.Serializer):
         decimal_places=2,
         help_text="Montant de la cotisation"
     )
-    numero_mobile_money = serializers.CharField(
+    numero_telephone = serializers.CharField(  # MIGRATION : numero_mobile_money → numero_telephone
         max_length=15,
-        help_text="Numéro de téléphone Mobile Money du client"
+        help_text="Numéro de téléphone pour le paiement KKiaPay"
     )
-    operateur = serializers.ChoiceField(
-        choices=[('mtn', 'MTN'), ('moov', 'Moov'), ('orange', 'Orange')],
-        default='mtn',
-        help_text="Opérateur Mobile Money"
-    )
+    # MIGRATION : operateur supprimé - KKiaPay gère tous les opérateurs automatiquement
 
 
 class IntegrerRequestSerializer(serializers.Serializer):
@@ -174,12 +166,8 @@ class AdhesionCotiserRequestSerializer(serializers.Serializer):
         max_value=62,  # Maximum 2 cycles complets
         help_text="Nombre de mises à payer (1-62)"
     )
-    numero_mobile_money = serializers.CharField(
+    numero_telephone = serializers.CharField(  # MIGRATION : numero_mobile_money → numero_telephone
         max_length=15,
-        help_text="Numéro de téléphone Mobile Money pour le paiement"
+        help_text="Numéro de téléphone pour le paiement KKiaPay"
     )
-    operateur = serializers.ChoiceField(
-        choices=[('mtn', 'MTN'), ('moov', 'Moov'), ('orange', 'Orange')],
-        default='mtn',
-        help_text="Opérateur Mobile Money"
-    )
+    # MIGRATION : operateur supprimé - KKiaPay gère tous les opérateurs automatiquement

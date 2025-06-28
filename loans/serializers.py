@@ -249,7 +249,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'loan', 'loan_info', 'client_nom', 'echeance', 'echeance_info',
             'montant_paye', 'montant_mensualite', 'montant_penalites',
-            'transaction_mobile_money', 'statut', 'date_paiement',
+            'transaction_kkiapay', 'statut', 'date_paiement',  # MIGRATION : transaction_mobile_money → transaction_kkiapay
             'date_confirmation', 'reference_externe'
         ]
         extra_kwargs = {
@@ -377,15 +377,11 @@ class EffectuerRemboursementSerializer(serializers.Serializer):
     echeance_id = serializers.UUIDField(
         help_text="ID de l'échéance à rembourser"
     )
-    numero_mobile_money = serializers.CharField(
+    numero_telephone = serializers.CharField(  # MIGRATION : numero_mobile_money → numero_telephone
         max_length=15,
-        help_text="Numéro de téléphone Mobile Money"
+        help_text="Numéro de téléphone pour paiement KKiaPay"
     )
-    operateur = serializers.ChoiceField(
-        choices=[('mtn', 'MTN'), ('moov', 'Moov'), ('orange', 'Orange')],
-        default='mtn',
-        help_text="Opérateur Mobile Money"
-    )
+    # MIGRATION : operateur supprimé - KKiaPay gère automatiquement
     montant_paye = serializers.DecimalField(
         max_digits=12,
         decimal_places=2,

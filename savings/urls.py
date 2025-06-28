@@ -12,5 +12,5 @@ router.register(r'accounts', SavingsAccountViewSet, basename='savings-account')
 router.register(r'transactions', SavingsTransactionViewSet, basename='savings-transaction')
 
 urlpatterns = [
-    path('api/savings/', include(router.urls)),
+    path('', include(router.urls)),
 ]

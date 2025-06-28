@@ -1,1 +1,393 @@
+# ================================================================
+# .gitignore pour TontiFlex - Système de gestion de tontines
+# ================================================================
+
+# =============================================================================
+# VARIABLES D'ENVIRONNEMENT ET SECRETS
+# =============================================================================
 .env
+.env.*
+.environment
+*.env
+secrets.py
+config/secrets.json
+.secrets/
+credentials.json
+api_keys.py
+
+# Clés et certificats
+*.pem
+*.key
+*.crt
+*.p12
+*.cer
+*.pfx
+*.jks
+*.keystore
+
+# Tokens et configurations sensibles
+token.txt
+tokens/
+config/production.py
+config/local.py
+
+# =============================================================================
+# PYTHON
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# =============================================================================
+# DJANGO
+# =============================================================================
+*.log
+local_settings.py
+
+
+# Media files (uploads utilisateurs)
+media/
+media_root/
+uploads/
+documents/
+photos/
+pieces_identite/
+
+# Static files collectés
+staticfiles/
+static_root/
+collected_static/
+
+# Django migrations (optionnel - décommenter si nécessaire)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# Session data
+sessions/
+
+# =============================================================================
+# ENVIRONNEMENTS VIRTUELS
+# =============================================================================
+venv/
+ENV/
+env/
+.venv/
+.ENV/
+.env/
+venv*/
+env*/
+python-env/
+.virtualenv/
+
+# Conda environments
+.conda/
+conda-meta/
+
+# Pipenv
+Pipfile.lock
+
+# Poetry
+poetry.lock
+
+# =============================================================================
+# IDEs ET ÉDITEURS
+# =============================================================================
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Atom
+.atom/
+
+# =============================================================================
+# SYSTÈMES D'EXPLOITATION
+# =============================================================================
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# LOGS ET MONITORING
+# =============================================================================
+logs/
+*.log
+log/
+debug.log
+error.log
+access.log
+django.log
+celery.log
+
+# Logs rotatifs
+*.log.*
+*.log.gz
+
+# =============================================================================
+# BACKUPS ET FICHIERS TEMPORAIRES
+# =============================================================================
+*.bak
+*.backup
+*.old
+*.tmp
+*.temp
+*~
+*.orig
+*.rej
+
+# Dumps de base de données
+*.sql
+*.dump
+backup_*.json
+fixtures/backup_*
+
+# =============================================================================
+# CACHE ET FICHIERS TEMPORAIRES
+# =============================================================================
+.cache/
+*.cache
+.sass-cache/
+.webassets-cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# =============================================================================
+# DÉVELOPPEMENT FRONTEND (si applicable)
+# =============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Compiled assets
+/public/hot
+/public/storage
+/public/css/
+/public/js/
+/public/mix-manifest.json
+
+# =============================================================================
+# DOCUMENTATION
+# =============================================================================
+docs/_build/
+docs/build/
+docs/.doctrees/
+.readthedocs.yml
+
+# Sphinx
+_build/
+_static/
+_templates/
+
+# =============================================================================
+# CI/CD ET DÉPLOIEMENT
+# =============================================================================
+.docker/
+Dockerfile.local
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Kubernetes
+k8s-local/
+*.k8s.local
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# =============================================================================
+# SPÉCIFIQUE TONTIFLEX
+# =============================================================================
+# Scripts de test locaux
+test_*.py
+sandbox_*.py
+demo_*.py
+local_test_*
+
+# Scripts de génération de données de test
+generate_test_data.py
+generate_minimal_test_data.py
+generate_complete_test_data.py
+generate_complete_unified_test_data.py
+create_test_data_simple.py
+fix_user_create.py
+fix_username_duplicates.py
+fix_user_creation.py
+
+# Scripts de test spécifiques
+test_admin_endpoints.py
+test_login.py
+test_login_valid.py
+test_kkiapay_sandbox.py
+test_migration_kkiapay_production.py
+sandbox_mtn_demo.py
+get_new_token.py
+
+# Fichiers HTML de test
+test_kkiapay.html
+
+# Résultats de tests
+test_results.txt
+resultats_tests.txt
+
+# Fichiers de configuration locale
+local_config.py
+dev_settings.py
+
+# Données de test générées
+test_data/
+sample_data/
+fixtures/local_*
+
+# Rapports et analyses
+reports/
+analytics/
+*.xlsx
+*.csv
+
+# Documents de test
+test_documents/
+sample_documents/
+
+# Mobile Money test data (dossier supprimé mais pour historique)
+mobile_money_test/
+kkiapay_test/
+webhook_test/
+
+# Anciens modules supprimés lors de la migration KKiaPay
+mobile_money/
+
+# Tests de workflow complets
+tests/check_mobile_money.py
+tests/test_tontiflex_workflow.py
+
+# =============================================================================
+# PERFORMANCE ET PROFILING
+# =============================================================================
+*.prof
+.profile
+prof/
+
+# Django Debug Toolbar
+debug_toolbar/
+
+# =============================================================================
+# FICHIERS DE VERROUILLAGE
+# =============================================================================
+*.lock
+*.lck
+
+# =============================================================================
+# AUTRES
+# =============================================================================
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Fichiers système
+.Trash/
+*.pid
+
+# Données sensibles métier
+client_data/
+real_data/
+production_backup/

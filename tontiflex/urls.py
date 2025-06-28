@@ -18,7 +18,7 @@ urlpatterns = [
     # API REST avec namespaces organisés sous /api/
     path('api/', include('accounts.urls')),      # /api/accounts/ et /api/auth/
     path('api/', include('tontines.urls')),      # /api/tontines/
-    path('api/', include('savings.urls')),       # /api/savings/
+    path('api/savings/', include('savings.urls')),       # /api/savings/
     path('api/', include('loans.urls')),         # /api/loans/
     # path('api/', include('mobile_money.urls')),  # MODULE SUPPRIMÉ - MIGRATION VERS KKIAPAY
     path('api/', include('payments.urls')),      # /api/payments/ - MODULE KKIAPAY UNIQUE

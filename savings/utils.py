@@ -12,7 +12,7 @@ from django.db import transaction
 # Import des modèles
 from .models import SavingsAccount, SavingsTransaction
 from accounts.models import User
-from mobile_money.models import TransactionMobileMoney
+from payments.models import KKiaPayTransaction  # MIGRATION : mobile_money → KKiaPay
 
 
 logger = logging.getLogger(__name__)
@@ -338,8 +338,7 @@ def cloturer_compte_epargne(compte, motif: str, agent) -> dict:
             type_transaction=SavingsTransaction.TypeChoices.RETRAIT,
             montant=solde,
             statut=SavingsTransaction.StatutChoices.EN_ATTENTE,
-            numero_mobile_money=compte.numero_telephone_paiement,
-            operateur=compte.operateur_mobile_money,
+            numero_telephone=compte.numero_telephone_paiement,  # MIGRATION : numero_mobile_money → numero_telephone
             commentaires=f"Retrait final - Clôture de compte - {motif}"
         )
     

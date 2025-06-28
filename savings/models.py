@@ -123,12 +123,12 @@ class SavingsAccount(models.Model):
     )
     
     transaction_frais_creation = models.ForeignKey(
-        'mobile_money.TransactionMobileMoney',
+        'payments.KKiaPayTransaction',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='comptes_epargne_crees',
-        help_text="Transaction Mobile Money pour les frais de création"
+        help_text="Transaction KKiaPay pour les frais de création"
     )
     
     # =============================================================================
@@ -281,7 +281,7 @@ class SavingsAccount(models.Model):
         try:
             if (self.statut == self.StatutChoices.PAIEMENT_EFFECTUE and 
                 self.transaction_frais_creation and 
-                self.transaction_frais_creation.statut == 'confirmee'):
+                self.transaction_frais_creation.status == 'success'):
                 
                 self.statut = self.StatutChoices.ACTIF
                 self.date_activation = timezone.now()
@@ -409,11 +409,11 @@ class SavingsTransaction(models.Model):
         help_text="Compte épargne concerné par la transaction"
     )
     
-    transaction_mobile_money = models.OneToOneField(
-        'mobile_money.TransactionMobileMoney',
+    transaction_kkiapay = models.OneToOneField(
+        'payments.KKiaPayTransaction',
         on_delete=models.CASCADE,
         related_name='transaction_epargne',
-        help_text="Transaction Mobile Money associée"
+        help_text="Transaction KKiaPay associée"
     )
     
     # =============================================================================
@@ -504,7 +504,7 @@ class SavingsTransaction(models.Model):
         """
         try:
             if (self.statut == self.StatutChoices.EN_COURS and 
-                self.transaction_mobile_money.statut == 'confirmee'):
+                self.transaction_kkiapay.status == 'success'):
                 
                 self.statut = self.StatutChoices.CONFIRMEE
                 self.date_confirmation = timezone.now()

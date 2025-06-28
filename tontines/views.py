@@ -252,19 +252,17 @@ class AdhesionViewSet(viewsets.ModelViewSet):
         },
         examples=[
             OpenApiExample(
-                "Paiement MTN Money",
+                "Paiement KKiaPay",
                 value={
-                    "numero_mobile_money": "+22370123456",
-                    "operateur": "MTN",
-                    "pin_mobile_money": "1234"
+                    "numero_telephone": "+22370123456"  # MIGRATION : KKiaPay simplifié
+                    # operateur et pin_mobile_money supprimés - KKiaPay gère automatiquement
                 }
             ),
             OpenApiExample(
-                "Paiement Moov Money",
+                "Paiement KKiaPay Alt",
                 value={
-                    "numero_mobile_money": "+22369987654",
-                    "operateur": "MOOV",
-                    "pin_mobile_money": "0000"
+                    "numero_telephone": "+22369987654"  # MIGRATION : KKiaPay unifié
+                    # operateur et pin_mobile_money non nécessaires
                 }
             )
         ]
@@ -280,9 +278,9 @@ class AdhesionViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             try:
                 with django.db.transaction.atomic():
-                    # Logique de paiement via Mobile Money
-                    numero_telephone = serializer.validated_data['numero_mobile_money']
-                    operateur = serializer.validated_data['operateur']
+                    # Logique de paiement via KKiaPay
+                    numero_telephone = serializer.validated_data['numero_telephone']  # MIGRATION : numero_mobile_money → numero_telephone
+                    # MIGRATION : operateur supprimé - KKiaPay gère automatiquement
                     
                     # Créer une transaction KKiaPay
                     from payments.services_migration import migration_service

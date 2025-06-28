@@ -1,6 +1,12 @@
 """
 Serializers Django REST Framework pour le module Savings.
-Gère uniquement les modèles relatifs aux comptes épargne et transactions.
+Gère uniquement les modèles relatifs aux comptes     )
+    numero_telephone = serializers.CharField(  # MIGRATION : numero_mobile_money → numero_telephone
+        max_length=15,
+        help_text="Numéro de téléphone pour paiement KKiaPay"
+    )
+    # MIGRATION : operateur supprimé - KKiaPay gère automatiquement
+    confirmer_montant = serializers.DecimalField( transactions.
 """
 from rest_framework import serializers
 from decimal import Decimal
@@ -34,7 +40,7 @@ class SavingsTransactionSerializer(serializers.ModelSerializer):
     """Serializer pour les transactions épargne"""
     client_nom = serializers.CharField(source='compte_epargne.client.nom_complet', read_only=True)
     compte_id = serializers.CharField(source='compte_epargne.id', read_only=True)
-    transaction_mm_statut = serializers.CharField(source='transaction_mobile_money.statut', read_only=True)
+    transaction_kkiapay_statut = serializers.CharField(source='transaction_kkiapay.status', read_only=True)  # MIGRATION : transaction_mobile_money → transaction_kkiapay
     
     class Meta:
         model = SavingsTransaction
@@ -56,13 +62,9 @@ class CreateRequestSerializer(serializers.Serializer):
     numero_telephone_paiement = serializers.CharField(
         max_length=15,
         required=False,
-        help_text="Numéro de téléphone Mobile Money pour frais de création"
+        help_text="Numéro de téléphone pour paiement KKiaPay des frais de création"
     )
-    operateur_mobile_money = serializers.ChoiceField(
-        choices=SavingsAccount.OperateurChoices.choices,
-        required=False,
-        help_text="Opérateur Mobile Money préféré"
-    )
+    # MIGRATION : operateur_mobile_money supprimé - KKiaPay gère automatiquement
 
 
 class ValidateRequestSerializer(serializers.Serializer):
@@ -94,13 +96,9 @@ class ValidateRequestSerializer(serializers.Serializer):
 
 class PayFeesSerializer(serializers.Serializer):
     """Serializer pour le paiement des frais de création."""
-    numero_mobile_money = serializers.CharField(
+    numero_telephone = serializers.CharField(
         max_length=15,
-        help_text="Numéro de téléphone Mobile Money"
-    )
-    operateur = serializers.ChoiceField(
-        choices=SavingsAccount.OperateurChoices.choices,
-        help_text="Opérateur Mobile Money"
+        help_text="Numéro de téléphone"
     )
     confirmer_montant = serializers.DecimalField(
         max_digits=10,
@@ -116,13 +114,9 @@ class DepositSerializer(serializers.Serializer):
         decimal_places=2,
         help_text="Montant du dépôt en FCFA"
     )
-    numero_mobile_money = serializers.CharField(
+    numero_telephone = serializers.CharField(
         max_length=15,
-        help_text="Numéro de téléphone Mobile Money"
-    )
-    operateur = serializers.ChoiceField(
-        choices=SavingsAccount.OperateurChoices.choices,
-        help_text="Opérateur Mobile Money"
+        help_text="Numéro de téléphone"
     )
     commentaires = serializers.CharField(
         max_length=500,
@@ -147,13 +141,9 @@ class WithdrawSerializer(serializers.Serializer):
         decimal_places=2,
         help_text="Montant du retrait en FCFA"
     )
-    numero_mobile_money = serializers.CharField(
+    numero_telephone = serializers.CharField(
         max_length=15,
-        help_text="Numéro de téléphone Mobile Money pour recevoir les fonds"
-    )
-    operateur = serializers.ChoiceField(
-        choices=SavingsAccount.OperateurChoices.choices,
-        help_text="Opérateur Mobile Money"
+        help_text="Numéro de téléphone pour recevoir les fonds"
     )
     motif_retrait = serializers.CharField(
         max_length=500,
@@ -239,4 +229,4 @@ class TransactionResponseSerializer(serializers.Serializer):
     montant = serializers.DecimalField(max_digits=12, decimal_places=2)
     statut = serializers.CharField()
     message = serializers.CharField()
-    reference_mobile_money = serializers.CharField(required=False)
+    reference_kkiapay = serializers.CharField(required=False)

@@ -58,54 +58,51 @@ class LoanApplicationModelTest(TestCase):
         )
         
         # Créer un client
-        self.client_user = User.objects.create_user(
-            username="client1",
+        self.client_user = Client.objects.create(
             nom="Doe",
             prenom="John",
             telephone="22890123456",
             email="john@test.com",
-            type_utilisateur="client",
-            password="testpass123"
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Test"
         )
         
         # Créer un agent SFD
-        self.agent = User.objects.create_user(
-     username="user2",
-            username="agent1",
+        self.agent = AgentSFD.objects.create(
             nom="Agent",
             prenom="Test",
             telephone="22890123457",
             email="agent@test.com",
-            type_utilisateur="agent_sfd",
-            sfd=self.sfd,
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Agent",
+            sfd=self.sfd
+        )
         
         # Créer un superviseur SFD
-        self.superviseur = User.objects.create_user(
-     username="user3",
-            username="superviseur1",
+        self.superviseur = SuperviseurSFD.objects.create(
             nom="Superviseur",
             prenom="Test",
             telephone="22890123458",
             email="superviseur@test.com",
-            type_utilisateur="superviseur_sfd",
-            sfd=self.sfd,
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Superviseur",
+            sfd=self.sfd
+        )
         
         # Créer un admin SFD
-        self.admin_sfd = User.objects.create_user(
-     username="user4",
-            username="admin1",
+        self.admin_sfd = AdministrateurSFD.objects.create(
             nom="Admin",
             prenom="SFD",
             telephone="22890123459",
             email="admin@test.com",
-            type_utilisateur="admin_sfd",
-            sfd=self.sfd,
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Admin",
+            sfd=self.sfd
+        )
         
         # Créer un compte épargne pour le client
         self.compte_epargne = SavingsAccount.objects.create(
@@ -227,27 +224,26 @@ class LoanModelTest(TestCase):
             numeroMobileMoney="22890000000"
         )
         
-        self.client_user = User.objects.create_user(
-     username="user5",
-            username="client2",
+        self.client_user = Client.objects.create(
             nom="Doe",
             prenom="John",
             telephone="22890123456",
             email="john@test.com",
-            type_utilisateur="client",
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Test"
+        )
         
-        self.admin_sfd = User.objects.create_user(
-     username="user6",
+        self.admin_sfd = AdministrateurSFD.objects.create(
             nom="Admin",
             prenom="SFD",
             telephone="22890123459",
             email="admin@test.com",
-            type_utilisateur="admin_sfd",
-            sfd=self.sfd,
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Admin",
+            sfd=self.sfd
+        )
         
         self.demande = LoanApplication.objects.create(
             client=self.client_user,
@@ -379,26 +375,26 @@ class CalculsFinanciersTest(TestCase):
             numeroMobileMoney="22890000000"
         )
         
-        client = User.objects.create_user(
-     username="user7",
+        client = Client.objects.create(
             nom="Test",
             prenom="Client",
             telephone="22890123456",
             email="client@test.com",
-            type_utilisateur="client",
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Test"
+        )
         
-        agent = User.objects.create_user(
-     username="user8",
+        agent = AgentSFD.objects.create(
             nom="Agent",
             prenom="Test",
             telephone="22890123457",
             email="agent@test.com",
-            type_utilisateur="agent_sfd",
-            sfd=sfd,
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Agent",
+            sfd=sfd
+        )
         
         # Créer un compte épargne ancien
         SavingsAccount.objects.create(
@@ -449,49 +445,49 @@ class LoanApplicationAPITest(APITestCase):
             numeroMobileMoney="22890000000"
         )
         
-        self.client_user = User.objects.create_user(
-     username="user9",
+        self.client_user = Client.objects.create(
             nom="Client",
             prenom="Test",
             telephone="22890123456",
             email="client@test.com",
-            type_utilisateur="client",
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Test"
+        )
         
-        self.superviseur = User.objects.create_user(
-     username="user10",
+        self.superviseur = SuperviseurSFD.objects.create(
             nom="Superviseur",
             prenom="Test",
             telephone="22890123458",
             email="superviseur@test.com",
-            type_utilisateur="superviseur_sfd",
-            sfd=self.sfd,
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Superviseur",
+            sfd=self.sfd
+        )
         
-        self.admin_sfd = User.objects.create_user(
-     username="user11",
+        self.admin_sfd = AdministrateurSFD.objects.create(
             nom="Admin",
             prenom="SFD",
             telephone="22890123459",
             email="admin@test.com",
-            type_utilisateur="admin_sfd",
-            sfd=self.sfd,
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Admin",
+            sfd=self.sfd
+        )
         
         # Créer un compte épargne pour le client
-        agent = User.objects.create_user(
-     username="user12",
+        agent = AgentSFD.objects.create(
             nom="Agent",
             prenom="Test",
             telephone="22890123457",
             email="agent@test.com",
-            type_utilisateur="agent_sfd",
-            sfd=self.sfd,
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Agent",
+            sfd=self.sfd
+        )
         
         SavingsAccount.objects.create(
             client=self.client_user,
@@ -645,15 +641,15 @@ class TasksTest(TestCase):
             numeroMobileMoney="22890000000"
         )
         
-        self.client_user = User.objects.create_user(
-     username="user13",
+        self.client_user = Client.objects.create(
             nom="Client",
             prenom="Test",
             telephone="22890123456",
             email="client@test.com",
-            type_utilisateur="client",
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Test"
+        )
     
     @patch('loans.tasks.send_mail')
     def test_notification_demande_soumise(self, mock_send_mail):
@@ -724,48 +720,48 @@ class WorkflowIntegrationTest(TransactionTestCase):
             numeroMobileMoney="22890000000"
         )
         
-        self.client_user = User.objects.create_user(
-     username="user14",
+        self.client_user = Client.objects.create(
             nom="Client",
             prenom="Test",
             telephone="22890123456",
             email="client@test.com",
-            type_utilisateur="client",
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Test"
+        )
         
-        self.agent = User.objects.create_user(
-     username="user15",
+        self.agent = AgentSFD.objects.create(
             nom="Agent",
             prenom="Test",
             telephone="22890123457",
             email="agent@test.com",
-            type_utilisateur="agent_sfd",
-            sfd=self.sfd,
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Agent",
+            sfd=self.sfd
+        )
         
-        self.superviseur = User.objects.create_user(
-     username="user16",
+        self.superviseur = SuperviseurSFD.objects.create(
             nom="Superviseur",
             prenom="Test",
             telephone="22890123458",
             email="superviseur@test.com",
-            type_utilisateur="superviseur_sfd",
-            sfd=self.sfd,
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Superviseur",
+            sfd=self.sfd
+        )
         
-        self.admin_sfd = User.objects.create_user(
-     username="user17",
+        self.admin_sfd = AdministrateurSFD.objects.create(
             nom="Admin",
             prenom="SFD",
             telephone="22890123459",
             email="admin@test.com",
-            type_utilisateur="admin_sfd",
-            sfd=self.sfd,
-            password="testpass123"
- )
+            motDePasse="testpass123",
+            adresse="Adresse test",
+            profession="Admin",
+            sfd=self.sfd
+        )
         
         # Créer un compte épargne
         SavingsAccount.objects.create(

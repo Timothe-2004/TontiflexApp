@@ -268,22 +268,40 @@ def generer_rapport_mensuel_prets():
 # INTÉGRATION MOBILE MONEY
 # =============================================================================
 
-def traiter_remboursement_mobile_money(payment_id):
+def traiter_remboursement_kkiapay(payment_id):
     """
-    Traite un remboursement via Mobile Money.
+    Traite un remboursement via KKiaPay.
     
     Args:
         payment_id: ID du paiement à traiter
     """
     try:
         from .models import Payment
+        from payments.services import KKiaPayService
         
         payment = Payment.objects.get(id=payment_id)
         
-        # Traitement via Mobile Money
-        # TODO: Intégrer avec les services Mobile Money existants
+        # Traitement via KKiaPay
+        kkiapay_service = KKiaPayService()
+        transaction_data = {
+            'amount': payment.montant,
+            'phone': payment.numero_telephone,
+            'description': f'Remboursement prêt - Échéance {payment.echeance.id}',
+            'webhook_url': settings.KKIAPAY_WEBHOOK_URL
+        }
         
-        logger.info(f"Remboursement {payment_id} traité")
+        # Initier la transaction
+        transaction_result = kkiapay_service.initiate_payment(transaction_data)
+        
+        if transaction_result:
+            payment.transaction_kkiapay = transaction_result
+            payment.statut_kkiapay = 'pending'
+            payment.save()
+            logger.info(f"Remboursement {payment_id} initié via KKiaPay")
+        else:
+            payment.statut_kkiapay = 'failed'
+            payment.save()
+            logger.error(f"Échec initiation remboursement {payment_id}")
         
     except Exception as e:
         logger.error(f"Erreur traitement remboursement {payment_id}: {str(e)}")

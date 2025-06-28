@@ -769,7 +769,7 @@ class Adhesion(models.Model):
         help_text="Référence du paiement Mobile Money"
     )
     
-    transaction_mobile_money = models.ForeignKey(
+    transaction_kkiapay = models.ForeignKey(
         'payments.KKiaPayTransaction',
         on_delete=models.SET_NULL,
         null=True,
@@ -918,38 +918,44 @@ class Adhesion(models.Model):
         """Initie le paiement des frais d'adhésion via Mobile Money"""
         if self.statut_actuel != 'validee_agent':
             raise ValidationError("La demande doit être validée par un agent avant le paiement")
-        from mobile_money.services_adhesion import AdhesionMobileMoneyService
-        service = AdhesionMobileMoneyService()
-        resultat = service.generer_paiement_adhesion(self, self.numero_telephone_paiement)
+        from payments.services import KKiaPayService  # MIGRATION : services_adhesion → KKiaPayService
+        service = KKiaPayService()
+        resultat = service.initiate_payment(
+            amount=self.frais_adhesion,
+            phone=self.numero_telephone_paiement,
+            transaction_type='adhesion_tontine',
+            description=f"Frais d'adhésion tontine {self.tontine.nom}",
+            client_id=self.client.id
+        )
         if not resultat.get('success'):
-            logger.error(f"Erreur lors de l'initiation du paiement Mobile Money: {resultat.get('error')}")
+            logger.error(f"Erreur lors de l'initiation du paiement KKiaPay: {resultat.get('error')}")
             raise ValidationError(resultat.get('error', 'Erreur lors de l’initiation du paiement.'))
-        # Associer la transaction Mobile Money à l'adhésion
-        from mobile_money.models import TransactionMobileMoney
+        # Associer la transaction KKiaPay à l'adhésion
+        from payments.models import KKiaPayTransaction  # MIGRATION : TransactionMobileMoney → KKiaPayTransaction
         try:
-            transaction = TransactionMobileMoney.objects.get(id=resultat['transaction_id'])
-            self.transaction_mobile_money = transaction
+            transaction = KKiaPayTransaction.objects.get(id=resultat['transaction_id'])
+            self.transaction_kkiapay = transaction  # MIGRATION : transaction_mobile_money → transaction_kkiapay
         except Exception as e:
-            logger.error(f"Impossible d'associer la transaction Mobile Money: {e}")
+            logger.error(f"Impossible d'associer la transaction KKiaPay: {e}")
         self.statut_actuel = 'en_cours_paiement'
         self.save()
         logger.info(f"Paiement initié pour la demande {self.id}")
         return resultat
 
-    def confirmer_paiement(self, montant_paye, reference_paiement, transaction_mm=None):
-        """Confirme le paiement des frais d'adhésion via Mobile Money"""
+    def confirmer_paiement(self, montant_paye, reference_paiement, transaction_kkiapay=None):
+        """Confirme le paiement des frais d'adhésion via KKiaPay"""
         if self.statut_actuel not in ['validee_agent', 'en_cours_paiement']:
             raise ValidationError("Paiement non autorisé pour ce statut")
-        from mobile_money.services_adhesion import AdhesionMobileMoneyService
-        service = AdhesionMobileMoneyService()
-        resultat = service.traiter_confirmation_paiement(reference_paiement, 'succes', {})
+        from payments.services import KKiaPayService  # MIGRATION : services_adhesion → KKiaPayService
+        service = KKiaPayService()
+        resultat = service.verify_transaction(reference_paiement)  # MIGRATION : traiter_confirmation_paiement → verify_transaction
         if not resultat.get('success'):
-            logger.error(f"Erreur lors de la confirmation du paiement Mobile Money: {resultat.get('error')}")
+            logger.error(f"Erreur lors de la confirmation du paiement KKiaPay: {resultat.get('error')}")
             raise ValidationError(resultat.get('error', 'Erreur lors de la confirmation du paiement.'))
         self.frais_adhesion_payes = montant_paye
         self.reference_paiement = reference_paiement
-        if transaction_mm:
-            self.transaction_mobile_money = transaction_mm
+        if transaction_kkiapay:
+            self.transaction_kkiapay = transaction_kkiapay  # MIGRATION : transaction_mobile_money → transaction_kkiapay
         self.date_paiement_frais = timezone.now()
         self.statut_actuel = 'paiement_effectue'
         self.save()
@@ -1146,14 +1152,14 @@ class Cotisation(models.Model):
         help_text="Client ayant effectué la cotisation"
     )
     
-    # Référence vers la transaction Mobile Money
-    transaction_mobile_money = models.ForeignKey(
-        'mobile_money.TransactionMobileMoney',
+    # Référence vers la transaction KKiaPay
+    transaction_kkiapay = models.ForeignKey(
+        'payments.KKiaPayTransaction',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='cotisations_associees',
-        help_text="Transaction Mobile Money associée"
+        help_text="Transaction KKiaPay associée"
     )
     
     class Meta:
@@ -1274,13 +1280,13 @@ class Retrait(models.Model):
     )
     
     # Référence vers la transaction Mobile Money (pour le versement)
-    transaction_mobile_money = models.ForeignKey(
-        'mobile_money.TransactionMobileMoney',
+    transaction_kkiapay = models.ForeignKey(
+        'payments.KKiaPayTransaction',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='retraits_associes',
-        help_text="Transaction Mobile Money de versement"
+        help_text="Transaction KKiaPay de versement"
     )
     
     class Meta:
@@ -1350,7 +1356,7 @@ class Retrait(models.Model):
         
         self.statut = self.StatutRetraitChoices.CONFIRMEE
         if transaction_mm:
-            self.transaction_mobile_money = transaction_mm
+            self.transaction_kkiapay = transaction_mm
         self.save()
 
 

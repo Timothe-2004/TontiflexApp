@@ -171,7 +171,7 @@ class NotificationService:
         )
     
     @staticmethod
-    def creer_notification_mobile_money_reussi(
+    def creer_notification_paiement_reussi(  # MIGRATION : mobile_money → paiement généralisé
         client,
         transaction: Any,
         montant: float,

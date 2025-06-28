@@ -9,7 +9,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExam
 
 # Import des modèles Savings uniquement
 from .models import SavingsAccount, SavingsTransaction
-from mobile_money.models import TransactionMobileMoney
+from payments.models import KKiaPayTransaction  # MIGRATION : mobile_money → KKiaPay
 
 # Import des serializers Savings uniquement
 from .serializers import (
@@ -107,7 +107,6 @@ from .utils import (
                     "photo_identite": "data:image/jpeg;base64,/9j/4AAQSkZJRgABA...",
                     "type_piece_identite": "CNI",
                     "numero_telephone": "+22370123456",
-                    "operateur_mobile_money": "MTN",
                     "commentaires": "Demande d'ouverture pour épargne familiale"
                 }
             )
@@ -218,7 +217,6 @@ class SavingsAccountViewSet(viewsets.ModelViewSet):
                     "photo_identite": "base64_encoded_image_data", 
                     "type_piece_identite": "CNI",
                     "numero_telephone": "+22370123456",
-                    "operateur_mobile_money": "MTN",
                     "commentaires": "Demande d'ouverture pour épargne familiale"
                 }
             )
@@ -251,7 +249,6 @@ class SavingsAccountViewSet(viewsets.ModelViewSet):
                         photo_identite=serializer.validated_data['photo_identite'],
                         type_piece_identite=serializer.validated_data['type_piece_identite'],
                         numero_telephone=serializer.validated_data['numero_telephone'],
-                        operateur_mobile_money=serializer.validated_data['operateur_mobile_money'],
                         commentaires=serializer.validated_data.get('commentaires', ''),
                         statut='en_cours_creation',
                         date_demande=timezone.now()
@@ -395,17 +392,13 @@ class SavingsAccountViewSet(viewsets.ModelViewSet):
             OpenApiExample(
                 "Paiement MTN Money",
                 value={
-                    "numero_telephone": "+22370123456",
-                    "operateur": "MTN",
-                    "pin_mobile_money": "1234"
+                    "numero_telephone": "+22370123456"
                 }
             ),
             OpenApiExample(
                 "Paiement Moov Money", 
                 value={
-                    "numero_telephone": "+22369987654",
-                    "operateur": "MOOV",
-                    "pin_mobile_money": "0000"
+                    "numero_telephone": "+22369987654"
                 }
             )
         ]
@@ -434,13 +427,13 @@ class SavingsAccountViewSet(viewsets.ModelViewSet):
                     # Calcul des frais (ici on prend un montant fixe, à ajuster selon business rules)
                     montant_frais = Decimal('5000.00')  # 5000 FCFA
                     
-                    # Créer une transaction Mobile Money
-                    transaction = TransactionMobileMoney.objects.create(
-                        numero_telephone=numero_telephone,
-                        montant=montant_frais,
-                        type_transaction='paiement',
-                        statut='en_cours',
-                        reference_externe=f"SAV_{savings_account.id}_{int(timezone.now().timestamp())}",
+                    # Créer une transaction KKiaPay
+                    transaction = KKiaPayTransaction.objects.create(
+                        phone=numero_telephone,
+                        amount=montant_frais,
+                        type='PAYMENT',
+                        status='pending',
+                        external_reference=f"SAV_{savings_account.id}_{int(timezone.now().timestamp())}",
                         description=f"Frais création compte épargne {savings_account.client.nom_complet}"
                     )
                     
@@ -505,8 +498,6 @@ class SavingsAccountViewSet(viewsets.ModelViewSet):
                 value={
                     "montant": 50000,
                     "numero_telephone": "+22370123456",
-                    "operateur": "MTN",
-                    "pin_mobile_money": "1234",
                     "description": "Dépôt épargne mensuelle"
                 }
             )
@@ -540,13 +531,13 @@ class SavingsAccountViewSet(viewsets.ModelViewSet):
                             'error': validation_result['error']
                         }, status=status.HTTP_400_BAD_REQUEST)
                     
-                    # Création de la transaction Mobile Money
-                    transaction_mobile = TransactionMobileMoney.objects.create(
-                        numero_telephone=serializer.validated_data['numero_telephone'],
-                        montant=montant,
-                        type_transaction='depot',
-                        statut='en_cours',
-                        reference_externe=f"DEP_{savings_account.id}_{int(timezone.now().timestamp())}",
+                    # Création de la transaction KKiaPay
+                    transaction_mobile = KKiaPayTransaction.objects.create(
+                        phone=serializer.validated_data['numero_telephone'],
+                        amount=montant,
+                        type='PAYMENT',
+                        status='pending',
+                        external_reference=f"DEP_{savings_account.id}_{int(timezone.now().timestamp())}",
                         description=serializer.validated_data.get('description', f"Dépôt compte épargne")
                     )
                     
@@ -556,8 +547,8 @@ class SavingsAccountViewSet(viewsets.ModelViewSet):
                         type_transaction='depot',
                         montant=montant,
                         statut='confirmee',
-                        transaction_mobile_money=transaction_mobile,
-                        description=serializer.validated_data.get('description', 'Dépôt via Mobile Money'),
+                        transaction_kkiapay=transaction_mobile,
+                        description=serializer.validated_data.get('description', 'Dépôt via KKiaPay'),
                         date_transaction=timezone.now()
                     )
                       # Mise à jour du solde (via la méthode du modèle)
@@ -616,8 +607,6 @@ class SavingsAccountViewSet(viewsets.ModelViewSet):
                 value={
                     "montant": 25000,
                     "numero_telephone": "+22370123456",
-                    "operateur": "MTN", 
-                    "pin_mobile_money": "1234",
                     "description": "Retrait pour urgence familiale"
                 }
             )
@@ -668,13 +657,13 @@ class SavingsAccountViewSet(viewsets.ModelViewSet):
                             'error': f'Solde insuffisant avec les frais. Frais: {frais_retrait} FCFA, Total requis: {montant_total} FCFA'
                         }, status=status.HTTP_400_BAD_REQUEST)
                     
-                    # Création de la transaction Mobile Money
-                    transaction_mobile = TransactionMobileMoney.objects.create(
-                        numero_telephone=serializer.validated_data['numero_telephone'],
-                        montant=montant,
-                        type_transaction='retrait',
-                        statut='en_cours',
-                        reference_externe=f"WTH_{savings_account.id}_{int(timezone.now().timestamp())}",
+                    # Création de la transaction KKiaPay
+                    transaction_mobile = KKiaPayTransaction.objects.create(
+                        phone=serializer.validated_data['numero_telephone'],
+                        amount=montant,
+                        type='WITHDRAWAL',
+                        status='pending',
+                        external_reference=f"WTH_{savings_account.id}_{int(timezone.now().timestamp())}",
                         description=serializer.validated_data.get('description', f"Retrait compte épargne")
                     )
                     
@@ -684,8 +673,8 @@ class SavingsAccountViewSet(viewsets.ModelViewSet):
                         type_transaction='retrait',
                         montant=montant,
                         statut='confirmee',
-                        transaction_mobile_money=transaction_mobile,
-                        description=serializer.validated_data.get('description', 'Retrait vers Mobile Money'),
+                        transaction_kkiapay=transaction_mobile,
+                        description=serializer.validated_data.get('description', 'Retrait vers KKiaPay'),
                         date_transaction=timezone.now()
                     )
                     
