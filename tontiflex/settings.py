@@ -41,7 +41,7 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-ea)dvrzq!-zog$cfegzkv7=8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG', default=True)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '0.0.0.0', '*'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
 
 
 # Application definition
@@ -100,21 +100,28 @@ WSGI_APPLICATION = 'tontiflex.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Configuration base de données avec support PostgreSQL pour production
+# Configuration SQLite par défaut pour tous les environnements
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
-if env('DATABASE_URL', default=None):
-    # Configuration PostgreSQL pour production (Render)
-    DATABASES = {
-        'default': dj_database_url.parse(env('DATABASE_URL'))
-    }
-else:
-    # Configuration SQLite pour développement local
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+# Alternative PostgreSQL commentée pour référence future
+# if env('DATABASE_URL', default=None):
+#     # Configuration PostgreSQL pour production (Render)
+#     DATABASES = {
+#         'default': dj_database_url.parse(env('DATABASE_URL'))
+#     }
+# else:
+#     # Configuration SQLite pour développement local
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',
+#         }
+#     }
 
 
 # Password validation
@@ -342,11 +349,13 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://tontiflexapp.onrender.com",  # Ajout du domaine de production
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOW_ALL_ORIGINS = DEBUG  # Allow all origins in development
+# Configuration CORS pour production et développement
+CORS_ALLOW_ALL_ORIGINS = True  # Autorise toutes les origines
 
 CORS_ALLOWED_HEADERS = [
     'accept',
@@ -361,11 +370,20 @@ CORS_ALLOWED_HEADERS = [
 ]
 
 # --- Security Settings ---
-# Force HTTP only for development server
-SECURE_SSL_REDIRECT = False
-SECURE_PROXY_SSL_HEADER = None
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+# Configuration sécurisée pour production
+if DEBUG:
+    # Développement
+    SECURE_SSL_REDIRECT = False
+    SECURE_PROXY_SSL_HEADER = None
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    # Production - Configuration sécurisée
+    SECURE_SSL_REDIRECT = env('SECURE_SSL_REDIRECT', default=True)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
@@ -398,7 +416,7 @@ if DEBUG:
     # Développement local
     KKIAPAY_WEBHOOK_URL = env('KKIAPAY_WEBHOOK_URL', default='http://localhost:8000/api/payments/webhook/')
 else:
-    # Production sur Render
+    # Production sur Render - CORRECTION CRITIQUE
     KKIAPAY_WEBHOOK_URL = env('KKIAPAY_WEBHOOK_URL', default='https://tontiflexapp.onrender.com/api/payments/webhook/')
 
 KKIAPAY_WEBHOOK_SECRET = env('KKIAPAY_WEBHOOK_SECRET', default='')
