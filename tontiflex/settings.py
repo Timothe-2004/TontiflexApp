@@ -271,6 +271,10 @@ SPECTACULAR_SETTINGS = {
         {
             'url': 'http://127.0.0.1:8000',
             'description': 'Serveur de développement (127.0.0.1)'
+        },
+        {
+            'url': 'https://tontiflexapp.onrender.com',
+            'description': 'Serveur de production (Render)'
         }
     ],
     'TAGS': [
@@ -389,8 +393,14 @@ KKIAPAY_LIVE_URL = env('KKIAPAY_LIVE_URL', default='https://api.kkiapay.me')
 # URL active selon le mode
 KKIAPAY_BASE_URL = KKIAPAY_SANDBOX_URL if KKIAPAY_SANDBOX else KKIAPAY_LIVE_URL
 
-# Webhook Configuration
-KKIAPAY_WEBHOOK_URL = env('KKIAPAY_WEBHOOK_URL', default='http://localhost:8000/api/payments/webhook/')
+# Webhook Configuration - Adapté à l'environnement
+if DEBUG:
+    # Développement local
+    KKIAPAY_WEBHOOK_URL = env('KKIAPAY_WEBHOOK_URL', default='http://localhost:8000/api/payments/webhook/')
+else:
+    # Production sur Render
+    KKIAPAY_WEBHOOK_URL = env('KKIAPAY_WEBHOOK_URL', default='https://tontiflexapp.onrender.com/api/payments/webhook/')
+
 KKIAPAY_WEBHOOK_SECRET = env('KKIAPAY_WEBHOOK_SECRET', default='')
 
 # Configuration avancée

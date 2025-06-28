@@ -21,6 +21,8 @@ services:
         sync: false
       - key: KKIAPAY_SECRET_KEY
         sync: false
+      - key: KKIAPAY_WEBHOOK_URL
+        value: https://tontiflexapp.onrender.com/api/payments/webhook/
       - key: KKIAPAY_WEBHOOK_SECRET
         generateValue: true
 
