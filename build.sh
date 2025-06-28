@@ -3,8 +3,8 @@
 
 set -o errexit  # Exit on error
 
-# Installer les dépendances Python
-pip install -r requirements.txt
+# Installer les dépendances Python avec versions compatibles
+pip install -r requirements-render.txt
 
 # Collecter les fichiers statiques
 python manage.py collectstatic --noinput
