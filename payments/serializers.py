@@ -130,3 +130,66 @@ class SandboxTestSerializer(serializers.Serializer):
             )
         
         return data
+
+
+class GeneratePaymentLinkSerializer(serializers.Serializer):
+    """
+    Serializer pour générer un lien de paiement KKiaPay
+    """
+    
+    montant = serializers.DecimalField(
+        max_digits=15, 
+        decimal_places=2,
+        min_value=Decimal('0.01'),
+        help_text="Montant à payer en XOF"
+    )
+    numero_telephone = serializers.CharField(
+        max_length=20,
+        help_text="Numéro de téléphone Mobile Money (format: +229xxxxxxxx)"
+    )
+    type_transaction = serializers.ChoiceField(
+        choices=KKiaPayTransaction.TYPE_CHOICES,
+        help_text="Type de transaction"
+    )
+    description = serializers.CharField(
+        max_length=200, 
+        required=False,
+        allow_blank=True,
+        help_text="Description optionnelle de la transaction"
+    )
+    objet_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="ID de l'objet concerné (tontine, compte épargne, etc.)"
+    )
+    objet_type = serializers.CharField(
+        max_length=50, 
+        required=False,
+        allow_blank=True,
+        help_text="Type d'objet concerné"
+    )
+    metadata = serializers.JSONField(
+        required=False,
+        help_text="Métadonnées additionnelles"
+    )
+    callback_url = serializers.URLField(
+        required=False, 
+        allow_blank=True, 
+        allow_null=True,
+        help_text="URL de retour après paiement"
+    )
+    
+    def validate_numero_telephone(self, value):
+        """
+        Valide le format du numéro de téléphone
+        """
+        # Supprimer les espaces et caractères spéciaux
+        clean_number = ''.join(filter(str.isdigit, value.replace('+', '')))
+        
+        # Vérification de la longueur (8 à 15 chiffres)
+        if len(clean_number) < 8 or len(clean_number) > 15:
+            raise serializers.ValidationError(
+                "Le numéro de téléphone doit contenir entre 8 et 15 chiffres"
+            )
+        
+        return value

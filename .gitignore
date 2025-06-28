@@ -296,11 +296,17 @@ k8s-local/
 # =============================================================================
 # SPÉCIFIQUE TONTIFLEX
 # =============================================================================
+
+# =============================================================================
+# FICHIERS DE TEST ET DEBUG
+# =============================================================================
 # Scripts de test locaux
 test_*.py
 sandbox_*.py
 demo_*.py
 local_test_*
+*_test.py
+test_*.*
 
 # Scripts de génération de données de test
 generate_test_data.py
@@ -311,6 +317,9 @@ create_test_data_simple.py
 fix_user_create.py
 fix_username_duplicates.py
 fix_user_creation.py
+create_admin_production.py
+setup_production.py
+check_deployment.py
 
 # Scripts de test spécifiques
 test_admin_endpoints.py
@@ -318,20 +327,76 @@ test_login.py
 test_login_valid.py
 test_kkiapay_sandbox.py
 test_migration_kkiapay_production.py
+test_production.py
+test_configuration_fixes.py
 sandbox_mtn_demo.py
 get_new_token.py
 
 # Fichiers HTML de test
 test_kkiapay.html
+test_*.html
 
 # Résultats de tests
 test_results.txt
 resultats_tests.txt
+*_results.txt
 
+# =============================================================================
+# DOCUMENTATION ET RAPPORTS MARKDOWN
+# =============================================================================
+# Rapports de migration et analyse
+MIGRATION_*.md
+RAPPORT_*.md
+*_REPORT.md
+*_DOCUMENTATION.md
+DEBUG_REPORT.md
+REFACTORING_*.md
+RENDER_*.md
+DEPLOY_*.md
+
+# Documentation technique
+ANALYSE_*.md
+API_DOCUMENTATION.md
+SWAGGER_*.md
+NOTIFICATION_*.md
+KKIAPAY_*.md
+LOANS_*.md
+TODO_*.md
+CHANGELOG.MD
+plan.md
+
+
+# Guides et instructions
+*_GUIDE.md
+*_COMPLETE.md
+*_FINAL.md
+*_STATUS.md
+*_SUMMARY.md
+PROJET_*.md
+
+# =============================================================================
+# FICHIERS YAML ET CONFIGURATION
+# =============================================================================
+# Documentation API YAML
+document.yaml
+document_paiement.yaml
+payments-v1.yaml
+withdrawals-v1.yaml
+
+
+# =============================================================================
+# FICHIERS DE CONFIGURATION ET SETUP
+# =============================================================================
 # Fichiers de configuration locale
 local_config.py
 dev_settings.py
 
+# Requirements spécifiques
+
+
+# =============================================================================
+# DONNÉES ET BACKUPS
+# =============================================================================
 # Données de test générées
 test_data/
 sample_data/
@@ -358,6 +423,19 @@ mobile_money/
 # Tests de workflow complets
 tests/check_mobile_money.py
 tests/test_tontiflex_workflow.py
+
+# =============================================================================
+# SCRIPTS DE BUILD ET DÉPLOIEMENT
+# =============================================================================
+# Scripts de build
+build.sh
+build_*.sh
+deploy_*.sh
+*.build
+
+# Scripts de configuration
+config_*.py
+setup_*.py
 
 # =============================================================================
 # PERFORMANCE ET PROFILING

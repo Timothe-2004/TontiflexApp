@@ -1,10 +1,58 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status, serializers
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 from .services import kkiapay_service
+from .models import KKiaPayTransaction
+from .serializers import KKiaPayTransactionSerializer
+from .config import kkiapay_config
+
+# Serializer pour la réponse de TransactionFromTokenView
+class TransactionFromTokenResponseSerializer(serializers.Serializer):
+    id = serializers.UUIDField(read_only=True, help_text="ID unique de la transaction")
+    montant = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True, help_text="Montant de la transaction")
+    type_transaction = serializers.CharField(read_only=True, help_text="Type de transaction")
+    description = serializers.CharField(read_only=True, help_text="Description de la transaction")
+    public_key = serializers.CharField(read_only=True, help_text="Clé publique KKiaPay")
+    callback_url = serializers.URLField(read_only=True, help_text="URL de callback")
+    numero_telephone = serializers.CharField(read_only=True, help_text="Numéro de téléphone")
+
 # --- Endpoint API pour valider un token et retourner la transaction (pour le widget JS) ---
 class TransactionFromTokenView(APIView):
+    """
+    API endpoint pour récupérer les détails d'une transaction à partir d'un token de validation.
+    Utilisé principalement par le widget JavaScript KKiaPay.
+    """
     permission_classes = [AllowAny]
+    
+    @extend_schema(
+        summary="Récupérer transaction par token",
+        description="""
+        Valide un token de paiement et retourne les détails de la transaction associée.
+        
+        **Utilisation:** Principalement pour le widget JavaScript KKiaPay qui nécessite
+        les détails de transaction pour finaliser un paiement.
+        
+        **Sécurité:** Endpoint public mais le token est validé côté serveur.
+        """,
+        parameters=[
+            OpenApiParameter(
+                name='token',
+                description='Token de validation de la transaction',
+                required=True,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY
+            )
+        ],
+        responses={
+            200: TransactionFromTokenResponseSerializer,
+            400: {"error": "Token manquant ou invalide"}
+        },
+        tags=["💳 Paiements KKiaPay"]
+    )
     def get(self, request):
         token = request.GET.get('token')
         if not token:
@@ -365,8 +413,42 @@ from rest_framework import status
 from .services import kkiapay_service
 
 class GeneratePaymentLinkView(APIView):
+    """
+    API endpoint pour générer un lien de paiement sécurisé via KKiaPay.
+    
+    Permet de créer une transaction et de générer un lien de paiement
+    que l'utilisateur peut utiliser pour effectuer son paiement.
+    """
     permission_classes = [IsAuthenticated]
-
+    
+    @extend_schema(
+        summary="Générer un lien de paiement",
+        description="""
+        Crée une nouvelle transaction et génère un lien de paiement sécurisé.
+        
+        **Process:**
+        1. Validation des données d'entrée
+        2. Création de la transaction en base de données
+        3. Génération du lien de paiement sécurisé
+        4. Retour du lien et de l'ID de transaction
+        
+        **Utilisation:** L'utilisateur peut utiliser le lien retourné pour 
+        accéder à l'interface de paiement KKiaPay.
+        """,
+        request=GeneratePaymentLinkSerializer,
+        responses={
+            201: {
+                "type": "object",
+                "properties": {
+                    "payment_link": {"type": "string", "description": "Lien de paiement sécurisé"},
+                    "transaction_id": {"type": "string", "description": "ID unique de la transaction"}
+                }
+            },
+            400: {"error": "Erreur de validation"},
+            401: {"error": "Authentification requise"}
+        },
+        tags=["💳 Paiements KKiaPay"]
+    )
     def post(self, request):
         serializer = GeneratePaymentLinkSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

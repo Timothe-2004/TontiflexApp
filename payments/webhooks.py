@@ -15,6 +15,11 @@ from django.views.decorators.http import require_POST
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+from drf_spectacular.utils import extend_schema
 import json
 
 from .services import kkiapay_service
@@ -23,13 +28,45 @@ from .config import kkiapay_config
 logger = logging.getLogger(__name__)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-@method_decorator(require_POST, name='dispatch')
-class KKiaPayWebhookView(View):
+class KKiaPayWebhookView(APIView):
     """
     Vue pour traiter les webhooks KKiaPay
     """
+    permission_classes = [AllowAny]  # Les webhooks viennent de KKiaPay, pas d'utilisateurs authentifiés
     
+    @extend_schema(
+        summary="Webhook KKiaPay",
+        description="""
+        Endpoint pour recevoir les notifications de statut des transactions KKiaPay.
+        
+        **⚠️ Usage interne uniquement** - Cet endpoint est appelé automatiquement par KKiaPay
+        pour notifier les changements de statut des transactions.
+        
+        **Sécurité:**
+        - Validation de signature avec HMAC-SHA256
+        - Vérification de l'IP source (optionnel)
+        - Traitement idempotent des webhooks
+        
+        **Types d'événements supportés:**
+        - `payment.success` - Paiement réussi
+        - `payment.failed` - Paiement échoué
+        - `payment.cancelled` - Paiement annulé
+        """,
+        request={
+            "type": "object",
+            "properties": {
+                "type": {"type": "string", "description": "Type d'événement"},
+                "data": {"type": "object", "description": "Données de la transaction"},
+                "timestamp": {"type": "string", "description": "Timestamp de l'événement"}
+            }
+        },
+        responses={
+            200: {"description": "Webhook traité avec succès"},
+            400: {"description": "Webhook invalide ou malformé"},
+            401: {"description": "Signature invalide"}
+        },
+        tags=["🔗 Webhooks"]
+    )
     def post(self, request):
         """
         Traite un webhook reçu de KKiaPay
@@ -41,7 +78,10 @@ class KKiaPayWebhookView(View):
             # Validation de la signature (si configurée)
             if not self._validate_signature(request, payload):
                 logger.warning("🚨 Signature webhook KKiaPay invalide")
-                return HttpResponseBadRequest("Signature invalide")
+                return Response(
+                    {"error": "Signature invalide"}, 
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
             
             # Parsing des données JSON
             webhook_data = json.loads(payload.decode('utf-8'))
@@ -57,17 +97,29 @@ class KKiaPayWebhookView(View):
                 # Déclencher les actions post-paiement selon le type
                 self._trigger_post_payment_actions(transaction)
                 
-                return HttpResponse("Webhook traité avec succès", status=200)
+                return Response(
+                    {"message": "Webhook traité avec succès"}, 
+                    status=status.HTTP_200_OK
+                )
             else:
                 logger.error("❌ Échec du traitement du webhook")
-                return HttpResponseBadRequest("Échec du traitement")
+                return Response(
+                    {"error": "Échec du traitement"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
                 
         except json.JSONDecodeError:
             logger.error("❌ Payload webhook invalide (JSON malformé)")
-            return HttpResponseBadRequest("JSON invalide")
+            return Response(
+                {"error": "JSON invalide"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
         except Exception as e:
             logger.error(f"❌ Erreur traitement webhook: {str(e)}")
-            return HttpResponseBadRequest(f"Erreur: {str(e)}")
+            return Response(
+                {"error": f"Erreur: {str(e)}"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
     
     def _validate_signature(self, request, payload: bytes) -> bool:
         """
@@ -250,6 +302,16 @@ class KKiaPayWebhookView(View):
 
 def webhook_view(request):
     """
-    Vue fonction pour les webhooks KKiaPay (alternative)
+    Vue fonction pour les webhooks KKiaPay avec CSRF exempt
     """
-    return KKiaPayWebhookView.as_view()(request)
+    # Wrapper CSRF exempt pour les webhooks KKiaPay
+    return csrf_exempt(KKiaPayWebhookView.as_view())(request)
+
+
+@csrf_exempt
+def webhook_view_function(request):
+    """
+    Vue fonction alternative pour les webhooks KKiaPay
+    """
+    webhook_instance = KKiaPayWebhookView()
+    return webhook_instance.post(request)

@@ -344,8 +344,22 @@ SIMPLE_JWT = {
 # --- End JWT Configuration ---
 
 # --- CORS Configuration ---
-CORS_ALLOW_ALL_ORIGINS = True
+# Configuration CORS sécurisée pour production
+if DEBUG:
+    # En développement : plus permissif
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    # En production : sécurisé avec domaines spécifiques
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = [
+        "https://tontiflexapp.onrender.com",  # Domaine principal
+        "https://www.tontiflexapp.onrender.com",  # Avec www
+        "https://tontiflexapp-admin.onrender.com",  # Admin si séparé
+    ]
+
 CORS_ALLOW_CREDENTIALS = True
+
+# Headers CORS étendus pour l'API
 CORS_ALLOWED_HEADERS = [
     'accept',
     'accept-encoding',
@@ -357,7 +371,10 @@ CORS_ALLOWED_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
     'x-api-key',
+    'cache-control',
+    'pragma',
 ]
+
 CORS_ALLOWED_METHODS = [
     'DELETE',
     'GET', 
@@ -367,17 +384,50 @@ CORS_ALLOWED_METHODS = [
     'PUT',
 ]
 
+# Préflight requests plus longs pour API complexes
+CORS_PREFLIGHT_MAX_AGE = 86400
+
 # --- Security Settings ---
 if not DEBUG:
+    # Production settings
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = False
+    SECURE_SSL_REDIRECT = False  # Render gère déjà HTTPS
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_HTTPONLY = True
 else:
+    # Development settings
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
+# Content Security Policy (optionnel)
+if not DEBUG:
+    CSP_DEFAULT_SRC = ("'self'",)
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "https://cdn.kkiapay.me")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+    CSP_IMG_SRC = ("'self'", "data:", "https:")
+
+# Trusted origins for CSRF
+CSRF_TRUSTED_ORIGINS = [
+    "https://tontiflexapp.onrender.com",
+    "https://www.tontiflexapp.onrender.com",
+]
+
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS.extend([
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ])
 
 # --- End CORS Configuration ---
 
