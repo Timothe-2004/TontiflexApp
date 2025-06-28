@@ -99,6 +99,7 @@ pieces_identite/
 staticfiles/
 static_root/
 collected_static/
+static/
 
 # Django migrations (optionnel - décommenter si nécessaire)
 # */migrations/*.py
