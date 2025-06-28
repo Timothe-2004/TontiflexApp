@@ -41,7 +41,7 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-ea)dvrzq!-zog$cfegzkv7=8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG', default=True)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -344,45 +344,37 @@ SIMPLE_JWT = {
 # --- End JWT Configuration ---
 
 # --- CORS Configuration ---
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://tontiflexapp.onrender.com",  # Ajout du domaine de production
-]
-
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-
-# Configuration CORS pour production et développement
-CORS_ALLOW_ALL_ORIGINS = True  # Autorise toutes les origines
-
 CORS_ALLOWED_HEADERS = [
     'accept',
     'accept-encoding',
-    'authorization',
+    'authorization', 
     'content-type',
     'dnt',
     'origin',
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'x-api-key',
+]
+CORS_ALLOWED_METHODS = [
+    'DELETE',
+    'GET', 
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
 ]
 
 # --- Security Settings ---
-# Configuration sécurisée pour production
-if DEBUG:
-    # Développement
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = False
-    SECURE_PROXY_SSL_HEADER = None
+else:
+    SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-else:
-    # Production - Configuration sécurisée
-    SECURE_SSL_REDIRECT = env('SECURE_SSL_REDIRECT', default=True)
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
 
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
